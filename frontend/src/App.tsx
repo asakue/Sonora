@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AmbientBackdrop } from './components/layout/AmbientBackdrop';
 import { RecentlyPlayedPanel } from './components/layout/RecentlyPlayedPanel';
 import { Sidebar, type NavTab } from './components/layout/Sidebar';
@@ -11,18 +11,25 @@ import { HistoryView } from './components/views/HistoryView';
 import { LikedSongsView } from './components/views/LikedSongsView';
 import { MildWaveDrawer } from './components/wave/MildWaveDrawer';
 import { MixerModal } from './components/mixer/MixerModal';
+import { UpdateNotificationModal } from './components/common/UpdateNotificationModal';
 import { AudioPlayerProvider, useAudioPlayer } from './context/AudioPlayerContext';
 import { UserStoreProvider, useUserStore } from './context/UserStoreContext';
 import { getInitialOrRestoredQueue } from './services/recommendation';
+import { checkForAppUpdates, type UpdateInfo } from './services/updateChecker';
+import type { Track } from './types/music';
 
 const MainApp: React.FC = React.memo(() => {
   const [currentTab, setCurrentTab] = useState<NavTab>('listen');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isWaveOpen, setIsWaveOpen] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
 
   const { currentTrack, setQueue, playTrack } = useAudioPlayer();
-  const { addToHistory, likedTracks, historyTracks } = useUserStore();
+  const { addToHistory, likedTracks, historyTracks, statsByTrackId, recordListeningSession } = useUserStore();
+
+  const activeTrackRef = useRef<Track | null>(null);
+  const activeStartTimeRef = useRef<number>(0);
 
   const handleToggleSidebar = useCallback(() => setIsSidebarCollapsed((prev) => !prev), []);
   const handleSelectTab = useCallback((tab: NavTab) => setCurrentTab(tab), []);
@@ -31,19 +38,62 @@ const MainApp: React.FC = React.memo(() => {
   const handleOpenWave = useCallback(() => setIsWaveOpen(true), []);
   const handleCloseWave = useCallback(() => setIsWaveOpen(false), []);
 
-  // Record history when track changes and plays
+  // Check for GitHub Release updates once on startup
   useEffect(() => {
-    if (currentTrack) {
-      addToHistory(currentTrack);
+    const timer = setTimeout(() => {
+      checkForAppUpdates().then((info) => {
+        if (info) {
+          setUpdateInfo(info);
+        }
+      });
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Record history and compute precise listening duration / weights when tracks transition
+  useEffect(() => {
+    const previousTrack = activeTrackRef.current;
+    const previousStart = activeStartTimeRef.current;
+
+    if (previousTrack && previousStart > 0) {
+      const durationSec = Math.max(0, (Date.now() - previousStart) / 1000);
+      recordListeningSession(previousTrack, durationSec);
     }
-  }, [currentTrack?.id]);
+
+    if (currentTrack) {
+      activeTrackRef.current = currentTrack;
+      activeStartTimeRef.current = Date.now();
+      addToHistory(currentTrack);
+    } else {
+      activeTrackRef.current = null;
+      activeStartTimeRef.current = 0;
+    }
+  }, [currentTrack?.id, addToHistory, recordListeningSession]);
+
+  // Record in-flight listening session before app closes
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const previousTrack = activeTrackRef.current;
+      const previousStart = activeStartTimeRef.current;
+      if (previousTrack && previousStart > 0) {
+        const durationSec = Math.max(0, (Date.now() - previousStart) / 1000);
+        recordListeningSession(previousTrack, durationSec);
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [recordListeningSession]);
 
   // Smart initialization: restore saved session or synthesize personalized recommendations based on likes & history
   useEffect(() => {
     let isCancelled = false;
     const initPersonalizedQueue = async () => {
       try {
-        const { queue: smartQueue, initialTrack } = await getInitialOrRestoredQueue(likedTracks, historyTracks);
+        const { queue: smartQueue, initialTrack } = await getInitialOrRestoredQueue(
+          likedTracks,
+          historyTracks,
+          statsByTrackId
+        );
         if (!isCancelled && smartQueue.length > 0) {
           setQueue(smartQueue);
           if (!currentTrack && initialTrack) {
@@ -131,6 +181,10 @@ const MainApp: React.FC = React.memo(() => {
       <SearchDrawer isOpen={isSearchOpen} onClose={handleCloseSearch} />
       <MildWaveDrawer isOpen={isWaveOpen} onClose={handleCloseWave} />
       <MixerModal />
+      <UpdateNotificationModal
+        updateInfo={updateInfo}
+        onClose={() => setUpdateInfo(null)}
+      />
     </div>
   );
 });

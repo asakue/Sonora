@@ -94,7 +94,7 @@ const QueueItem: React.FC<QueueItemProps> = React.memo(({
 
 export const QueuePanel: React.FC = React.memo(() => {
   const { queue, queueIndex, playTrack, removeFromQueue, setQueue } = useAudioPlayer();
-  const { likedTracks, historyTracks } = useUserStore();
+  const { likedTracks, historyTracks, statsByTrackId } = useUserStore();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleClear = useCallback(() => {
@@ -104,7 +104,11 @@ export const QueuePanel: React.FC = React.memo(() => {
   const handleGenerateMix = useCallback(async () => {
     setIsGenerating(true);
     try {
-      const { queue: newQueue, initialTrack } = await buildPersonalizedQueue(likedTracks, historyTracks);
+      const { queue: newQueue, initialTrack } = await buildPersonalizedQueue(
+        likedTracks,
+        historyTracks,
+        statsByTrackId
+      );
       if (newQueue.length > 0) {
         setQueue(newQueue);
         if (initialTrack) {
@@ -114,7 +118,7 @@ export const QueuePanel: React.FC = React.memo(() => {
     } finally {
       setIsGenerating(false);
     }
-  }, [likedTracks, historyTracks, setQueue, playTrack]);
+  }, [likedTracks, historyTracks, statsByTrackId, setQueue, playTrack]);
 
   const handlePlayTrack = useCallback((track: Track) => {
     playTrack(track);

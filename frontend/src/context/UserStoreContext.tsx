@@ -1,13 +1,17 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { MildWaveStyle, Track } from '../types/music';
+import type { TrackListeningStats, UserPreferenceProfile } from '../types/userProfile';
+import { recordListeningEvent, deriveAggregatedPreferences } from '../services/preferenceEngine';
 
 interface UserStoreContextType {
   likedTracks: Track[];
   historyTracks: Track[];
+  statsByTrackId: Record<number, TrackListeningStats>;
   isLiked: (trackId: number) => boolean;
   toggleLike: (track: Track) => void;
   addToHistory: (track: Track) => void;
   clearHistory: () => void;
+  recordListeningSession: (track: Track, listenedSeconds: number) => void;
   mildWaveStyle: MildWaveStyle;
   setMildWaveStyle: (style: MildWaveStyle) => void;
 }
@@ -35,6 +39,15 @@ export const UserStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
+  const [statsByTrackId, setStatsByTrackId] = useState<Record<number, TrackListeningStats>>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_stats`);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
   const [mildWaveStyle, setMildWaveStyle] = useState<MildWaveStyle>(() => {
     try {
       return (localStorage.getItem(`${STORAGE_KEY}_style`) as MildWaveStyle) || 'aura';
@@ -43,29 +56,59 @@ export const UserStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
+  // Restore persistent profile from Electron %APPDATA%\Sonora if available
+  useEffect(() => {
+    // @ts-expect-error electronAPI exposed in preload
+    if (window.electronAPI?.getUserProfile) {
+      // @ts-expect-error electronAPI exposed in preload
+      window.electronAPI.getUserProfile().then((profile: UserPreferenceProfile | null) => {
+        if (profile) {
+          if (profile.likedTracks && Array.isArray(profile.likedTracks) && profile.likedTracks.length > 0) {
+            setLikedTracks(profile.likedTracks);
+          }
+          if (profile.historyTracks && Array.isArray(profile.historyTracks) && profile.historyTracks.length > 0) {
+            setHistoryTracks(profile.historyTracks);
+          }
+          if (profile.mildWaveStyle) {
+            setMildWaveStyle(profile.mildWaveStyle);
+          }
+          if (profile.statsByTrackId && Object.keys(profile.statsByTrackId).length > 0) {
+            setStatsByTrackId(profile.statsByTrackId);
+          }
+        }
+      });
+    }
+  }, []);
+
+  // Save to both localStorage and Electron AppData persistent profile
   useEffect(() => {
     try {
       localStorage.setItem(`${STORAGE_KEY}_likes`, JSON.stringify(likedTracks));
-    } catch (e) {
-      console.warn('Failed to save likes to localStorage:', e);
-    }
-  }, [likedTracks]);
-
-  useEffect(() => {
-    try {
       localStorage.setItem(`${STORAGE_KEY}_history`, JSON.stringify(historyTracks));
-    } catch (e) {
-      console.warn('Failed to save history to localStorage:', e);
-    }
-  }, [historyTracks]);
-
-  useEffect(() => {
-    try {
+      localStorage.setItem(`${STORAGE_KEY}_stats`, JSON.stringify(statsByTrackId));
       localStorage.setItem(`${STORAGE_KEY}_style`, mildWaveStyle);
     } catch (e) {
-      console.warn('Failed to save style to localStorage:', e);
+      console.warn('Failed to save to localStorage:', e);
     }
-  }, [mildWaveStyle]);
+
+    // Persist to %APPDATA%\Sonora\user_profile.json
+    // @ts-expect-error electronAPI exposed in preload
+    if (window.electronAPI?.saveUserProfile) {
+      const { topArtists, topGenres } = deriveAggregatedPreferences(statsByTrackId);
+      const profileData: UserPreferenceProfile = {
+        version: 1,
+        lastUpdated: Date.now(),
+        statsByTrackId,
+        topArtists,
+        topGenres,
+        likedTracks,
+        historyTracks,
+        mildWaveStyle,
+      };
+      // @ts-expect-error electronAPI exposed in preload
+      window.electronAPI.saveUserProfile(profileData).catch(() => {});
+    }
+  }, [likedTracks, historyTracks, statsByTrackId, mildWaveStyle]);
 
   const isLiked = useCallback((trackId: number): boolean => {
     return likedTracks.some((t) => t.id === trackId);
@@ -74,6 +117,21 @@ export const UserStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const toggleLike = useCallback((track: Track) => {
     setLikedTracks((prev) => {
       const exists = prev.some((t) => t.id === track.id);
+      const willBeLiked = !exists;
+      // Also update isLiked flag in stats
+      setStatsByTrackId((stats) => {
+        if (stats[track.id]) {
+          return {
+            ...stats,
+            [track.id]: {
+              ...stats[track.id],
+              isLiked: willBeLiked,
+            },
+          };
+        }
+        return stats;
+      });
+
       if (exists) {
         return prev.filter((t) => t.id !== track.id);
       } else {
@@ -93,22 +151,34 @@ export const UserStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setHistoryTracks([]);
   }, []);
 
+  const recordListeningSession = useCallback((track: Track, listenedSeconds: number) => {
+    if (!track || !track.id) return;
+    setStatsByTrackId((prev) => {
+      const currentlyLiked = likedTracks.some((t) => t.id === track.id);
+      return recordListeningEvent(prev, track, listenedSeconds, currentlyLiked);
+    });
+  }, [likedTracks]);
+
   const contextValue = useMemo(() => ({
     likedTracks,
     historyTracks,
+    statsByTrackId,
     isLiked,
     toggleLike,
     addToHistory,
     clearHistory,
+    recordListeningSession,
     mildWaveStyle,
     setMildWaveStyle,
   }), [
     likedTracks,
     historyTracks,
+    statsByTrackId,
     isLiked,
     toggleLike,
     addToHistory,
     clearHistory,
+    recordListeningSession,
     mildWaveStyle,
     setMildWaveStyle,
   ]);

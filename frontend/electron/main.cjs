@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, nativeImage } = require('electron');
+const { app, BrowserWindow, shell, nativeImage, ipcMain } = require('electron');
 const path = require('path');
 const http = require('http');
 const { spawn } = require('child_process');
@@ -28,6 +28,63 @@ if (process.platform === 'win32') {
   app.setAppUserModelId('com.sonora.player');
 }
 app.setName('Sonora');
+
+// Ensure unified persistent userData directory across all versions/installations/portables
+try {
+  const appDataRoot = app.getPath('appData');
+  const unifiedUserData = path.join(appDataRoot, 'Sonora');
+  if (!fs.existsSync(unifiedUserData)) {
+    fs.mkdirSync(unifiedUserData, { recursive: true });
+  }
+  app.setPath('userData', unifiedUserData);
+  logDesktop(`userData pinned to: ${unifiedUserData}`);
+} catch (e) {
+  logDesktop(`Warning setting userData: ${e.message}`);
+}
+
+// IPC Handlers for cross-version user profile persistence
+ipcMain.handle('get-user-profile', async () => {
+  try {
+    const profilePath = path.join(app.getPath('userData'), 'user_profile.json');
+    const backupPath = path.join(app.getPath('userData'), 'user_profile.backup.json');
+    if (fs.existsSync(profilePath)) {
+      const content = fs.readFileSync(profilePath, 'utf8');
+      return JSON.parse(content);
+    } else if (fs.existsSync(backupPath)) {
+      const content = fs.readFileSync(backupPath, 'utf8');
+      return JSON.parse(content);
+    }
+  } catch (err) {
+    logDesktop(`Error reading user profile: ${err.message}`);
+  }
+  return null;
+});
+
+ipcMain.handle('save-user-profile', async (_event, profileData) => {
+  try {
+    const profilePath = path.join(app.getPath('userData'), 'user_profile.json');
+    const backupPath = path.join(app.getPath('userData'), 'user_profile.backup.json');
+    const raw = JSON.stringify(profileData, null, 2);
+    if (fs.existsSync(profilePath)) {
+      try {
+        fs.copyFileSync(profilePath, backupPath);
+      } catch {}
+    }
+    fs.writeFileSync(profilePath, raw, 'utf8');
+    return { success: true };
+  } catch (err) {
+    logDesktop(`Error saving user profile: ${err.message}`);
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('open-external-url', async (_event, url) => {
+  if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
+    shell.openExternal(url);
+    return true;
+  }
+  return false;
+});
 
 // Chromium switches to allow media playback without gesture & allow file streaming
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
@@ -296,6 +353,7 @@ function createWindow() {
     backgroundColor: '#0a0b0e',
     show: false, // show after ready-to-show for zero flicker
     webPreferences: {
+      preload: path.join(__dirname, 'preload.cjs'),
       nodeIntegration: false,
       contextIsolation: true,
       webSecurity: false, // allow local audio streaming

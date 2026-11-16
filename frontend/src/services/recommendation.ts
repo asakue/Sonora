@@ -1,4 +1,6 @@
 import type { Track } from '../types/music';
+import type { TrackListeningStats } from '../types/userProfile';
+import { selectOptimalSeeds } from './preferenceEngine';
 
 const API_BASE = 'http://127.0.0.1:8000';
 export const QUEUE_STORAGE_KEY = 'sonora_saved_queue_v1';
@@ -6,20 +8,30 @@ export const CURRENT_TRACK_STORAGE_KEY = 'sonora_saved_track_v1';
 
 /**
  * Intelligent Personalized Queue Generator.
- * Synthesizes user's liked tracks and recent listening history with SoundCloud MildWave AI
- * to construct a seamless, tailored listening queue upon launch or page refresh.
+ * Synthesizes user's liked tracks, listening history, and dynamic engagement profile
+ * with SoundCloud MildWave AI to construct a personalized listening queue.
  */
 export async function buildPersonalizedQueue(
   likedTracks: Track[],
-  historyTracks: Track[]
+  historyTracks: Track[],
+  statsMap?: Record<number, TrackListeningStats>
 ): Promise<{ queue: Track[]; initialTrack: Track | null }> {
   // Deduplication set
   const addedIds = new Set<number>();
   const queue: Track[] = [];
 
-  // Helper to safely add tracks without duplicates
+  // Helper to safely add tracks without duplicates and filter out disliked/skipped tracks
   const addTrack = (t: Track | null | undefined): boolean => {
     if (!t || !t.id || addedIds.has(t.id)) return false;
+
+    // Check if user has strong negative affinity (frequent skips without completion)
+    if (statsMap && statsMap[t.id]) {
+      const stats = statsMap[t.id];
+      if (stats.skipCount >= 3 && stats.completionCount === 0) {
+        return false;
+      }
+    }
+
     addedIds.add(t.id);
     queue.push(t);
     return true;
@@ -28,8 +40,20 @@ export async function buildPersonalizedQueue(
   const hasLikes = likedTracks && likedTracks.length > 0;
   const hasHistory = historyTracks && historyTracks.length > 0;
 
-  // 1. Identify primary anchor track (most recently listened, or most recently liked)
-  const primaryAnchor = hasHistory
+  // Use dynamic preference engine if statsMap is provided
+  let topSeeds: Track[] = [];
+  let favoriteArtists: string[] = [];
+
+  if (statsMap && Object.keys(statsMap).length > 0) {
+    const seedsData = selectOptimalSeeds(likedTracks, historyTracks, statsMap);
+    topSeeds = seedsData.topSeeds;
+    favoriteArtists = seedsData.favoriteArtists;
+  }
+
+  // 1. Identify primary anchor track
+  const primaryAnchor = topSeeds.length > 0
+    ? topSeeds[0]
+    : hasHistory
     ? historyTracks[0]
     : hasLikes
     ? likedTracks[0]
@@ -43,16 +67,21 @@ export async function buildPersonalizedQueue(
   const seedIds: number[] = [];
   if (primaryAnchor) seedIds.push(primaryAnchor.id);
 
-  // Add up to 3 liked track IDs
-  for (const t of likedTracks) {
-    if (!seedIds.includes(t.id)) seedIds.push(t.id);
-    if (seedIds.length >= 4) break;
-  }
-
-  // Add up to 2 history track IDs
-  for (const t of historyTracks) {
-    if (!seedIds.includes(t.id)) seedIds.push(t.id);
-    if (seedIds.length >= 6) break;
+  if (topSeeds.length > 1) {
+    for (const t of topSeeds.slice(1, 6)) {
+      if (!seedIds.includes(t.id)) seedIds.push(t.id);
+    }
+  } else {
+    // Add up to 3 liked track IDs
+    for (const t of likedTracks) {
+      if (!seedIds.includes(t.id)) seedIds.push(t.id);
+      if (seedIds.length >= 4) break;
+    }
+    // Add up to 2 history track IDs
+    for (const t of historyTracks) {
+      if (!seedIds.includes(t.id)) seedIds.push(t.id);
+      if (seedIds.length >= 6) break;
+    }
   }
 
   let recommendations: Track[] = [];
@@ -95,24 +124,26 @@ export async function buildPersonalizedQueue(
       } catch {}
     }
 
-    // If still low, search based on favorite artist
-    if (recommendations.length < 5 && primaryAnchor?.artist) {
-      try {
-        const searchRes = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(primaryAnchor.artist)}&limit=10`);
-        if (searchRes.ok) {
-          const searchData = await searchRes.json();
-          if (searchData.tracks) {
-            recommendations.push(...searchData.tracks);
+    // If still low, search based on favorite artists from profile
+    if (recommendations.length < 6) {
+      const artistQuery = favoriteArtists[0] || primaryAnchor?.artist;
+      if (artistQuery) {
+        try {
+          const searchRes = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(artistQuery)}&limit=10`);
+          if (searchRes.ok) {
+            const searchData = await searchRes.json();
+            if (searchData.tracks) {
+              recommendations.push(...searchData.tracks);
+            }
           }
-        }
-      } catch {}
+        } catch {}
+      }
     }
   }
 
   // 4. Fallback for Cold Start (New user with zero likes and zero history)
   if (queue.length === 0 && recommendations.length === 0) {
     try {
-      // Vibrant diverse starter pack instead of monotone ambient
       const starterQueries = ['Пошлая Молли', 'кис кис', 'дора', 'alternative rock'];
       const q = starterQueries[Math.floor(Math.random() * starterQueries.length)];
       const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(q)}&limit=10`);
@@ -126,8 +157,6 @@ export async function buildPersonalizedQueue(
   }
 
   // 5. Smart Interweaving (Golden Ratio: ~35% Loved Favorites + ~65% Fresh Discoveries)
-  // Queue structure:
-  // [Anchor] -> [Rec 1] -> [Rec 2] -> [Favorite Liked] -> [Rec 3] -> [Rec 4] -> [Favorite History] -> [Remaining Recs]
   let recIndex = 0;
   let likeIndex = 0;
   let histIndex = 0;
@@ -137,9 +166,10 @@ export async function buildPersonalizedQueue(
     addTrack(recommendations[recIndex++]);
   }
 
-  // Add 1 favorite from likes
-  while (likeIndex < likedTracks.length) {
-    if (addTrack(likedTracks[likeIndex++])) break;
+  // Add 1 favorite from likes or top seeds
+  const likedCandidates = topSeeds.length > 0 ? topSeeds : likedTracks;
+  while (likeIndex < likedCandidates.length) {
+    if (addTrack(likedCandidates[likeIndex++])) break;
   }
 
   // Add next 2 recommendations
@@ -154,8 +184,8 @@ export async function buildPersonalizedQueue(
   }
 
   // Add next favorite from likes
-  while (likeIndex < likedTracks.length) {
-    if (addTrack(likedTracks[likeIndex++])) break;
+  while (likeIndex < likedCandidates.length) {
+    if (addTrack(likedCandidates[likeIndex++])) break;
   }
 
   // Add all remaining recommendations up to a balanced queue of 12-16 tracks
@@ -164,8 +194,8 @@ export async function buildPersonalizedQueue(
   }
 
   // If queue still small, add remaining liked tracks
-  while (likeIndex < likedTracks.length && queue.length < 16) {
-    addTrack(likedTracks[likeIndex++]);
+  while (likeIndex < likedCandidates.length && queue.length < 16) {
+    addTrack(likedCandidates[likeIndex++]);
   }
 
   const initialTrack = queue.length > 0 ? queue[0] : null;
@@ -177,7 +207,8 @@ export async function buildPersonalizedQueue(
  */
 export async function getInitialOrRestoredQueue(
   likedTracks: Track[],
-  historyTracks: Track[]
+  historyTracks: Track[],
+  statsMap?: Record<number, TrackListeningStats>
 ): Promise<{ queue: Track[]; initialTrack: Track | null }> {
   try {
     const savedQueueRaw = localStorage.getItem(QUEUE_STORAGE_KEY);
@@ -202,7 +233,7 @@ export async function getInitialOrRestoredQueue(
     console.warn('Failed to parse saved session queue:', e);
   }
 
-  // If no saved queue, build fresh personalized mix
-  return buildPersonalizedQueue(likedTracks, historyTracks);
+  // If no saved queue, build fresh personalized mix with dynamic preference weights
+  return buildPersonalizedQueue(likedTracks, historyTracks, statsMap);
 }
 
