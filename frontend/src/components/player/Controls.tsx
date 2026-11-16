@@ -170,28 +170,10 @@ const RemixControl: React.FC = React.memo(() => {
 
   const isCustomMode = remixMode !== 'original';
 
-  const modes: { id: RemixMode; title: string; subtitle: string; tag: string; icon: string }[] = [
-    {
-      id: 'original',
-      title: 'Оригинал',
-      subtitle: 'Стандартный звук',
-      tag: '1.0x',
-      icon: '✨',
-    },
-    {
-      id: 'slowed',
-      title: 'Slowed + Reverb',
-      subtitle: 'Питч-даун и эхо',
-      tag: '0.85x',
-      icon: '🌙',
-    },
-    {
-      id: 'speed_up',
-      title: 'Speed Up',
-      subtitle: 'Ускорение и питч-ап',
-      tag: '1.20x',
-      icon: '⚡',
-    },
+  const modes: { id: RemixMode; label: string }[] = [
+    { id: 'original', label: 'Оригинал' },
+    { id: 'slowed', label: 'Slowed + Reverb' },
+    { id: 'speed_up', label: 'Speed Up' },
   ];
 
   return (
@@ -205,37 +187,63 @@ const RemixControl: React.FC = React.memo(() => {
             ? `Активен ремикс: ${remixMode === 'slowed' ? 'Slowed + Reverb' : 'Speed Up'}`
             : 'Ремикс трека (Slowed / Speed Up)'
         }
-        className={`relative p-2.5 rounded-full btn-spring cursor-pointer transition-all duration-300 disabled:opacity-40 disabled:pointer-events-none ${
+        className={`relative p-2.5 rounded-full btn-spring cursor-pointer transition-all duration-300 overflow-hidden disabled:opacity-40 disabled:pointer-events-none ${
           isCustomMode
-            ? 'bg-gradient-to-r from-purple-500/25 to-indigo-500/25 text-purple-200 border border-purple-400/40 shadow-[0_0_14px_rgba(168,85,247,0.35)] scale-105'
+            ? 'cosmic-shimmer scale-105 text-white'
             : isOpen
             ? 'bg-white/10 text-white'
             : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
         }`}
+        style={
+          isCustomMode
+            ? {
+                background: `
+                  radial-gradient(1px 1px at 25% 28%, rgba(255,255,255,0.95), transparent),
+                  radial-gradient(1px 1px at 72% 32%, rgba(255,255,255,0.9), transparent),
+                  radial-gradient(1.2px 1.2px at 45% 72%, rgba(255,255,255,0.95), transparent),
+                  radial-gradient(0.8px 0.8px at 80% 65%, rgba(255,255,255,0.8), transparent),
+                  radial-gradient(1px 1px at 28% 78%, rgba(255,255,255,0.7), transparent),
+                  radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--cover-b, #7045af) 85%, transparent), transparent 70%),
+                  radial-gradient(circle at 75% 70%, color-mix(in srgb, var(--cover-a, #203565) 90%, transparent), transparent 75%),
+                  radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--cover-glow, #8469c4) 50%, #06070d), #040508)
+                `,
+                border: '1px solid rgba(255, 255, 255, 0.28)',
+                boxShadow:
+                  '0 0 16px -2px color-mix(in srgb, var(--cover-glow, #8469c4) 65%, transparent), inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.8)',
+              }
+            : undefined
+        }
       >
-        <Wand2 size={18} strokeWidth={1.6} />
-        {isCustomMode && (
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-purple-400 ring-2 ring-neutral-950 animate-pulse" />
-        )}
+        <Wand2
+          size={18}
+          strokeWidth={1.6}
+          className={isCustomMode ? 'drop-shadow-[0_0_6px_rgba(255,255,255,0.85)]' : ''}
+        />
       </button>
 
-      {/* Flyout Glass Popup */}
+      {/* Flyout Glass Popup with 3D Waterfall Edge & Cover Liquid Glass Tint */}
       {isOpen && (
         <div
-          className="absolute bottom-full left-0 mb-3 w-56 rounded-2xl p-2 z-50 select-none animate-in fade-in zoom-in-95 duration-150"
+          className="absolute bottom-full left-0 mb-3 w-44 rounded-2xl p-1.5 z-50 select-none animate-in fade-in zoom-in-95 duration-150 overflow-hidden"
           style={{
-            backgroundColor: '#0c0e17',
-            background: 'linear-gradient(180deg, rgba(22, 26, 42, 0.96) 0%, rgba(10, 12, 19, 0.98) 100%)',
+            backgroundColor: '#07090e',
+            background: `
+              radial-gradient(ellipse 90% 50% at 50% 0%, rgba(255, 255, 255, 0.12) 0%, transparent 75%),
+              radial-gradient(circle at 15% 15%, color-mix(in srgb, var(--cover-b, #1f2538) 25%, transparent), transparent 60%),
+              radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--cover-a, #161b2a) 25%, transparent), transparent 60%),
+              linear-gradient(160deg, color-mix(in srgb, var(--cover-a, #121520) 22%, #090a10) 0%, #050609 100%)
+            `,
             border: '1px solid rgba(255, 255, 255, 0.12)',
-            boxShadow: '0 20px 40px -8px rgba(0,0,0,0.9), 0 0 1px 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.15)',
-            backdropFilter: 'blur(20px)',
+            borderTopColor: 'rgba(255, 255, 255, 0.32)',
+            borderLeftColor: 'rgba(255, 255, 255, 0.20)',
+            borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+            borderRightColor: 'rgba(255, 255, 255, 0.08)',
+            boxShadow:
+              '0 24px 50px -10px rgba(0, 0, 0, 0.95), 0 10px 24px -4px rgba(0, 0, 0, 0.8), inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.35), inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.7), inset 1px 0 1px 0 rgba(255, 255, 255, 0.12), inset -1px 0 1px 0 rgba(0, 0, 0, 0.35)',
+            backdropFilter: 'blur(28px) saturate(190%)',
+            WebkitBackdropFilter: 'blur(28px) saturate(190%)',
           }}
         >
-          <div className="px-2.5 py-1 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider flex items-center justify-between border-b border-white/6 mb-1">
-            <span>Ремикс трека</span>
-            <span className="text-purple-400 font-mono text-[9px] px-1.5 py-0.5 rounded bg-purple-500/15 border border-purple-500/20">Live</span>
-          </div>
-
           <div className="flex flex-col gap-1">
             {modes.map((m) => {
               const active = remixMode === m.id;
@@ -246,34 +254,13 @@ const RemixControl: React.FC = React.memo(() => {
                     setRemixMode(m.id);
                     setIsOpen(false);
                   }}
-                  className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-left transition-all btn-spring cursor-pointer ${
+                  className={`w-full px-3.5 py-2.5 rounded-xl text-left text-xs transition-all btn-spring cursor-pointer ${
                     active
-                      ? 'bg-white text-neutral-950 font-semibold shadow-md shadow-white/20'
-                      : 'text-neutral-300 hover:text-white hover:bg-white/6'
+                      ? 'waterfall-selected text-white font-medium'
+                      : 'text-neutral-400 hover:text-white hover:bg-white/6 font-normal border border-transparent'
                   }`}
                 >
-                  <span className="text-sm select-none">{m.icon}</span>
-                  <div className="flex flex-col min-w-0 flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs leading-tight font-medium">{m.title}</span>
-                      <span
-                        className={`text-[9px] font-mono px-1 py-0.2 rounded ${
-                          active
-                            ? 'bg-neutral-900/20 text-neutral-950 font-bold'
-                            : 'bg-white/5 text-neutral-400'
-                        }`}
-                      >
-                        {m.tag}
-                      </span>
-                    </div>
-                    <span
-                      className={`text-[10px] leading-tight truncate mt-0.5 ${
-                        active ? 'text-neutral-700' : 'text-neutral-400'
-                      }`}
-                    >
-                      {m.subtitle}
-                    </span>
-                  </div>
+                  {m.label}
                 </button>
               );
             })}
