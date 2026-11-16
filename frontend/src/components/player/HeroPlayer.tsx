@@ -8,43 +8,47 @@ const TimelineScrubber: React.FC<{ disabled: boolean }> = React.memo(({ disabled
   const { currentTime, duration, seek } = useAudioProgress();
   const { currentTrack } = useAudioPlayer();
   const [isHoveringSeek, setIsHoveringSeek] = useState(false);
+  const [dragVal, setDragVal] = useState<number | null>(null);
 
   const effectiveDuration = duration > 0 ? duration : (currentTrack?.duration || 0);
-  const progressPercent = effectiveDuration > 0 ? Math.max(0, Math.min(100, (currentTime / effectiveDuration) * 100)) : 0;
+  const displayTime = dragVal !== null ? dragVal : currentTime;
+  const progressPercent = effectiveDuration > 0 ? Math.max(0, Math.min(100, (displayTime / effectiveDuration) * 100)) : 0;
 
   return (
     <div className="flex items-center gap-3 text-xs font-mono text-neutral-400">
-      <span className="w-10 text-right tabular-nums">{formatTimeSeconds(currentTime)}</span>
+      <span className="w-10 text-right tabular-nums">{formatTimeSeconds(displayTime)}</span>
 
       <div
         className="relative flex-1 flex items-center h-6 cursor-pointer"
         onMouseEnter={() => setIsHoveringSeek(true)}
         onMouseLeave={() => setIsHoveringSeek(false)}
       >
-        {/* Custom filled progress track */}
-        <div className="absolute inset-x-0 h-1 bg-white/10 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-indigo-300 to-white transition-all duration-75"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
+        {/* Clean uncolored track groove */}
+        <div className="absolute inset-x-0 h-1 bg-white/10 rounded-full" />
 
         <input
           type="range"
           min={0}
           max={effectiveDuration || 100}
-          step={0.5}
-          value={currentTime}
-          onChange={(e) => seek(parseFloat(e.target.value))}
+          step={0.1}
+          value={displayTime}
+          onMouseDown={() => setDragVal(currentTime)}
+          onTouchStart={() => setDragVal(currentTime)}
+          onInput={(e) => setDragVal(parseFloat((e.target as HTMLInputElement).value))}
+          onChange={(e) => {
+            const val = parseFloat(e.target.value);
+            setDragVal(null);
+            seek(val);
+          }}
           disabled={disabled || effectiveDuration === 0}
           aria-label="Позиция трека"
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
         />
 
-        {/* Glowing scrubber thumb dot */}
+        {/* Clean moving thumb dot (no fill behind) */}
         <div
-          className={`absolute w-3 h-3 bg-white rounded-full shadow-md pointer-events-none transition-transform duration-100 ${
-            isHoveringSeek ? 'scale-125' : 'scale-100'
+          className={`absolute w-3 h-3 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.7)] pointer-events-none transition-transform duration-100 ${
+            isHoveringSeek || dragVal !== null ? 'scale-125' : 'scale-100'
           }`}
           style={{
             left: `calc(${progressPercent}% - 6px)`,

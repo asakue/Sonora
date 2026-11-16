@@ -433,14 +433,14 @@ export const MixerModal: React.FC = () => {
         </div>
 
         {/* Presets Bar */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none relative z-10">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 relative z-10">
           {MIXER_PRESETS.map((p) => {
             const isSelected = mixerSettings.preset === p.key;
             return (
               <button
                 key={p.key}
                 onClick={() => applyPreset(p.key)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap btn-spring transition-all cursor-pointer ${
+                className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap btn-spring transition-all cursor-pointer ${
                   isSelected
                     ? 'bg-white text-neutral-950 font-semibold shadow-md shadow-white/20'
                     : 'bg-white/4 hover:bg-white/8 text-neutral-300 border border-white/6 hover:border-white/12'
