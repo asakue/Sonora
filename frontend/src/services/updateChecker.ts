@@ -84,3 +84,4 @@ export function markUpdateDismissed(tagName: string): void {
     localStorage.setItem(SEEN_UPDATE_KEY, tagName);
   } catch {}
 }
+

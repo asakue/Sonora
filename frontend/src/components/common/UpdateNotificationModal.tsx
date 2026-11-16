@@ -111,3 +111,4 @@ export const UpdateNotificationModal: React.FC<UpdateNotificationModalProps> = R
     </div>
   );
 });
+

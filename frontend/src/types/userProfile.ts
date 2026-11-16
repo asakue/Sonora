@@ -30,3 +30,4 @@ export interface UserPreferenceProfile {
   mixerSettings?: MixerSettings;
   remixMode?: RemixMode;
 }
+
