@@ -1,5 +1,6 @@
 @echo off
 chcp 65001 >nul
+set ELECTRON_RUN_AS_NODE=
 echo ========================================================
 echo         Запуск нативного плеера Sonora (Electron)
 echo ========================================================
@@ -16,4 +17,3 @@ if exist "%~dp0frontend\dist_electron\win-unpacked\Sonora.exe" (
     cd /d "%~dp0frontend"
     npm run electron:dev
 )
-

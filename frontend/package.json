@@ -25,6 +25,15 @@
       "electron/**/*",
       "public/**/*"
     ],
+    "extraResources": [
+      {
+        "from": "../backend/dist/sonora-backend",
+        "to": "backend",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
     "win": {
       "target": [
         {

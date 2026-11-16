@@ -4,6 +4,8 @@ __pycache__/
 *.so
 .Python
 build/
+dist/
+*.spec
 develop-eggs/
 eggs/
 .eggs/
@@ -21,4 +23,3 @@ env/
 .client_id_cache
 backend.log
 *.log
-
