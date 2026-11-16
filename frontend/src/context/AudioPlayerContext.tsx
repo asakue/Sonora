@@ -15,6 +15,8 @@ export interface AudioProgressContextType {
   seek: (seconds: number) => void;
 }
 
+export type RemixMode = 'original' | 'slowed' | 'speed_up';
+
 export const AudioProgressContext = createContext<AudioProgressContextType>({
   currentTime: 0,
   duration: 0,
@@ -65,6 +67,10 @@ interface AudioPlayerContextType {
   resetMixer: () => void;
   isMixerOpen: boolean;
   setIsMixerOpen: (open: boolean) => void;
+
+  // Live Remix DSP
+  remixMode: RemixMode;
+  setRemixMode: (mode: RemixMode) => void;
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextType | null>(null);
@@ -165,6 +171,24 @@ const AudioProgressProvider: React.FC<{
   );
 };
 
+/**
+ * Synthetic impulse response for lush hall/ambient reverb in Slowed + Reverb mode
+ */
+function createReverbImpulse(ctx: AudioContext, duration = 2.4, decay = 2.0): AudioBuffer {
+  const sampleRate = ctx.sampleRate;
+  const length = Math.floor(sampleRate * duration);
+  const impulse = ctx.createBuffer(2, length, sampleRate);
+  const left = impulse.getChannelData(0);
+  const right = impulse.getChannelData(1);
+
+  for (let i = 0; i < length; i++) {
+    const factor = Math.exp(-i / (sampleRate * (decay / 4)));
+    left[i] = (Math.random() * 2 - 1) * factor;
+    right[i] = (Math.random() * 2 - 1) * factor;
+  }
+  return impulse;
+}
+
 export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [audioInstance] = useState(() => {
     if (typeof Audio === 'undefined') return null;
@@ -191,6 +215,20 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const preampNodeRef = useRef<GainNode | null>(null);
   const spatialDryGainRef = useRef<GainNode | null>(null);
   const spatialWetGainRef = useRef<GainNode | null>(null);
+
+  // Remix Live DSP Nodes & State
+  const [remixMode, setRemixModeState] = useState<RemixMode>(() => {
+    try {
+      const saved = localStorage.getItem('sonora_remix_mode') as RemixMode;
+      if (saved === 'slowed' || saved === 'speed_up') return saved;
+    } catch {}
+    return 'original';
+  });
+  const remixModeRef = useRef<RemixMode>(remixMode);
+  remixModeRef.current = remixMode;
+
+  const reverbConvolverRef = useRef<ConvolverNode | null>(null);
+  const reverbGainRef = useRef<GainNode | null>(null);
 
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [status, setStatus] = useState<PlaybackStatus>('idle');
@@ -481,12 +519,23 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       f1000.connect(f4000);
       f4000.connect(f12000);
 
+      // Smart Reverb Send for Slowed + Reverb mode
+      const convolver = ctx.createConvolver();
+      convolver.buffer = createReverbImpulse(ctx, 2.4, 2.0);
+
+      const reverbGain = ctx.createGain();
+      reverbGain.gain.value = remixModeRef.current === 'slowed' ? 0.35 : 0.0;
+
       if (panner) {
         spatialMix.connect(panner);
         panner.connect(analyser);
+        panner.connect(convolver);
       } else {
         spatialMix.connect(analyser);
+        spatialMix.connect(convolver);
       }
+      convolver.connect(reverbGain);
+      reverbGain.connect(analyser);
 
       analyser.connect(gain);
       gain.connect(ctx.destination);
@@ -499,6 +548,8 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       pannerNodeRef.current = panner;
       spatialDryGainRef.current = dryGain;
       spatialWetGainRef.current = wetGain;
+      reverbConvolverRef.current = convolver;
+      reverbGainRef.current = reverbGain;
       filtersRef.current = {
         60: f60,
         250: f250,
@@ -686,6 +737,80 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     analyserRef.current.getByteFrequencyData(dataArray);
     return dataArray;
   }, []);
+
+  const applyRemixMode = useCallback((mode: RemixMode) => {
+    const audio = audioRef.current;
+    const ctx = audioCtxRef.current;
+
+    let targetRate = 1.0;
+    let targetPreservesPitch = true;
+    let targetReverbGain = 0.0;
+
+    if (mode === 'slowed') {
+      targetRate = 0.85;
+      targetPreservesPitch = false;
+      targetReverbGain = 0.35;
+    } else if (mode === 'speed_up') {
+      targetRate = 1.20;
+      targetPreservesPitch = false;
+      targetReverbGain = 0.0;
+    }
+
+    if (audio) {
+      try {
+        audio.playbackRate = targetRate;
+        audio.defaultPlaybackRate = targetRate;
+        audio.preservesPitch = targetPreservesPitch;
+        (audio as any).webkitPreservesPitch = targetPreservesPitch;
+        (audio as any).mozPreservesPitch = targetPreservesPitch;
+      } catch (e) {
+        console.warn('Error applying playbackRate / preservesPitch:', e);
+      }
+    }
+
+    if (ctx && reverbGainRef.current) {
+      try {
+        const now = ctx.currentTime;
+        reverbGainRef.current.gain.cancelScheduledValues(now);
+        reverbGainRef.current.gain.setValueAtTime(reverbGainRef.current.gain.value, now);
+        reverbGainRef.current.gain.setTargetAtTime(targetReverbGain, now, 0.04);
+      } catch {
+        reverbGainRef.current.gain.value = targetReverbGain;
+      }
+    }
+  }, []);
+
+  const setRemixMode = useCallback((mode: RemixMode) => {
+    initWebAudio();
+    if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
+    setRemixModeState(mode);
+    remixModeRef.current = mode;
+    try {
+      localStorage.setItem('sonora_remix_mode', mode);
+    } catch {}
+    applyRemixMode(mode);
+  }, [initWebAudio, applyRemixMode]);
+
+  // Ensure remix mode playbackRate & preservesPitch are reapplied on audio load/play
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleMediaReady = () => {
+      applyRemixMode(remixModeRef.current);
+    };
+
+    audio.addEventListener('loadedmetadata', handleMediaReady);
+    audio.addEventListener('play', handleMediaReady);
+    audio.addEventListener('playing', handleMediaReady);
+    return () => {
+      audio.removeEventListener('loadedmetadata', handleMediaReady);
+      audio.removeEventListener('play', handleMediaReady);
+      audio.removeEventListener('playing', handleMediaReady);
+    };
+  }, [applyRemixMode]);
 
   const playTrack = useCallback(async (track: Track, newQueue?: Track[]) => {
     const currentRequestId = ++playRequestIdRef.current;
@@ -969,6 +1094,9 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     resetMixer,
     isMixerOpen,
     setIsMixerOpen,
+
+    remixMode,
+    setRemixMode,
   }), [
     currentTrack,
     status,
@@ -1008,6 +1136,8 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     resetMixer,
     isMixerOpen,
     setIsMixerOpen,
+    remixMode,
+    setRemixMode,
   ]);
 
   return (

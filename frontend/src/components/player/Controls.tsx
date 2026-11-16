@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Heart,
   Loader2,
@@ -12,8 +12,9 @@ import {
   Volume1,
   Volume2,
   VolumeX,
+  Wand2,
 } from 'lucide-react';
-import { useAudioPlayer } from '../../context/AudioPlayerContext';
+import { useAudioPlayer, type RemixMode } from '../../context/AudioPlayerContext';
 import { useUserStore } from '../../context/UserStoreContext';
 
 /**
@@ -136,6 +137,153 @@ const AtmosphericVolumeControl: React.FC = React.memo(() => {
   );
 });
 
+/**
+ * Live Remix Control Capsule (Magic Wand):
+ * Allows real-time on-the-fly audio remixing for the currently playing track:
+ * - Original (1.0x, standard sound)
+ * - Slowed + Reverb (0.85x speed, lowered pitch, lush spatial reverb)
+ * - Speed Up (1.20x speed, raised pitch, Nightcore energetic tempo)
+ */
+const RemixControl: React.FC = React.memo(() => {
+  const { remixMode, setRemixMode, currentTrack } = useAudioPlayer();
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Close menu on click outside or Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
+  const isCustomMode = remixMode !== 'original';
+
+  const modes: { id: RemixMode; title: string; subtitle: string; tag: string; icon: string }[] = [
+    {
+      id: 'original',
+      title: 'Оригинал',
+      subtitle: 'Стандартный звук',
+      tag: '1.0x',
+      icon: '✨',
+    },
+    {
+      id: 'slowed',
+      title: 'Slowed + Reverb',
+      subtitle: 'Питч-даун и эхо',
+      tag: '0.85x',
+      icon: '🌙',
+    },
+    {
+      id: 'speed_up',
+      title: 'Speed Up',
+      subtitle: 'Ускорение и питч-ап',
+      tag: '1.20x',
+      icon: '⚡',
+    },
+  ];
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        onClick={() => setIsOpen((prev) => !prev)}
+        disabled={!currentTrack}
+        aria-label="Ремикс трека (Slowed / Speed Up)"
+        title={
+          isCustomMode
+            ? `Активен ремикс: ${remixMode === 'slowed' ? 'Slowed + Reverb' : 'Speed Up'}`
+            : 'Ремикс трека (Slowed / Speed Up)'
+        }
+        className={`relative p-2.5 rounded-full btn-spring cursor-pointer transition-all duration-300 disabled:opacity-40 disabled:pointer-events-none ${
+          isCustomMode
+            ? 'bg-gradient-to-r from-purple-500/25 to-indigo-500/25 text-purple-200 border border-purple-400/40 shadow-[0_0_14px_rgba(168,85,247,0.35)] scale-105'
+            : isOpen
+            ? 'bg-white/10 text-white'
+            : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
+        }`}
+      >
+        <Wand2 size={18} strokeWidth={1.6} />
+        {isCustomMode && (
+          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-purple-400 ring-2 ring-neutral-950 animate-pulse" />
+        )}
+      </button>
+
+      {/* Flyout Glass Popup */}
+      {isOpen && (
+        <div
+          className="absolute bottom-full left-0 mb-3 w-56 rounded-2xl p-2 z-50 select-none animate-in fade-in zoom-in-95 duration-150"
+          style={{
+            backgroundColor: '#0c0e17',
+            background: 'linear-gradient(180deg, rgba(22, 26, 42, 0.96) 0%, rgba(10, 12, 19, 0.98) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            boxShadow: '0 20px 40px -8px rgba(0,0,0,0.9), 0 0 1px 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.15)',
+            backdropFilter: 'blur(20px)',
+          }}
+        >
+          <div className="px-2.5 py-1 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider flex items-center justify-between border-b border-white/6 mb-1">
+            <span>Ремикс трека</span>
+            <span className="text-purple-400 font-mono text-[9px] px-1.5 py-0.5 rounded bg-purple-500/15 border border-purple-500/20">Live</span>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            {modes.map((m) => {
+              const active = remixMode === m.id;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => {
+                    setRemixMode(m.id);
+                    setIsOpen(false);
+                  }}
+                  className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-left transition-all btn-spring cursor-pointer ${
+                    active
+                      ? 'bg-white text-neutral-950 font-semibold shadow-md shadow-white/20'
+                      : 'text-neutral-300 hover:text-white hover:bg-white/6'
+                  }`}
+                >
+                  <span className="text-sm select-none">{m.icon}</span>
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs leading-tight font-medium">{m.title}</span>
+                      <span
+                        className={`text-[9px] font-mono px-1 py-0.2 rounded ${
+                          active
+                            ? 'bg-neutral-900/20 text-neutral-950 font-bold'
+                            : 'bg-white/5 text-neutral-400'
+                        }`}
+                      >
+                        {m.tag}
+                      </span>
+                    </div>
+                    <span
+                      className={`text-[10px] leading-tight truncate mt-0.5 ${
+                        active ? 'text-neutral-700' : 'text-neutral-400'
+                      }`}
+                    >
+                      {m.subtitle}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
 export const Controls: React.FC = () => {
   const {
     currentTrack,
@@ -155,7 +303,7 @@ export const Controls: React.FC = () => {
 
   return (
     <div className="flex items-center justify-between w-full px-1">
-      {/* Left utility: Like & Shuffle */}
+      {/* Left utility: Like, Shuffle & Remix Magic Wand */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => currentTrack && toggleLike(currentTrack)}
@@ -185,6 +333,9 @@ export const Controls: React.FC = () => {
         >
           <Shuffle size={18} strokeWidth={1.5} />
         </button>
+
+        {/* Live Remix Magic Wand */}
+        <RemixControl />
       </div>
 
       {/* Center transport controls: Prev, Play/Pause, Next */}
