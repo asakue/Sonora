@@ -262,25 +262,3 @@ input[type="range"]::-moz-range-thumb {
   transition: transform 0.18s var(--ease-spring);
 }
 
-/* Cosmic Starry Sky Shimmer for Remix Magic Wand */
-@keyframes cosmic-star-shimmer {
-  0%, 100% {
-    filter: brightness(1) saturate(1.1);
-    box-shadow: 
-      0 0 16px -2px color-mix(in srgb, var(--cover-glow, #8469c4) 60%, transparent),
-      inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.5),
-      inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.8);
-  }
-  50% {
-    filter: brightness(1.22) saturate(1.3);
-    box-shadow: 
-      0 0 24px 2px color-mix(in srgb, var(--cover-glow, #8469c4) 85%, transparent),
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.7),
-      inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.8);
-  }
-}
-
-.cosmic-shimmer {
-  animation: cosmic-star-shimmer 4.5s ease-in-out infinite;
-}
-

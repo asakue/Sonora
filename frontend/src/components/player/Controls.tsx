@@ -169,6 +169,7 @@ const RemixControl: React.FC = React.memo(() => {
   }, [isOpen]);
 
   const isCustomMode = remixMode !== 'original';
+  const isSlowed = remixMode === 'slowed';
 
   const modes: { id: RemixMode; label: string }[] = [
     { id: 'original', label: 'Оригинал' },
@@ -189,36 +190,48 @@ const RemixControl: React.FC = React.memo(() => {
         }
         className={`relative p-2.5 rounded-full btn-spring cursor-pointer transition-all duration-300 overflow-hidden disabled:opacity-40 disabled:pointer-events-none ${
           isCustomMode
-            ? 'cosmic-shimmer scale-105 text-white'
+            ? isSlowed
+              ? 'scale-105 text-white'
+              : 'scale-105 text-neutral-950'
             : isOpen
             ? 'bg-white/10 text-white'
             : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
         }`}
         style={
           isCustomMode
-            ? {
-                background: `
-                  radial-gradient(1px 1px at 25% 28%, rgba(255,255,255,0.95), transparent),
-                  radial-gradient(1px 1px at 72% 32%, rgba(255,255,255,0.9), transparent),
-                  radial-gradient(1.2px 1.2px at 45% 72%, rgba(255,255,255,0.95), transparent),
-                  radial-gradient(0.8px 0.8px at 80% 65%, rgba(255,255,255,0.8), transparent),
-                  radial-gradient(1px 1px at 28% 78%, rgba(255,255,255,0.7), transparent),
-                  radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--cover-b, #7045af) 85%, transparent), transparent 70%),
-                  radial-gradient(circle at 75% 70%, color-mix(in srgb, var(--cover-a, #203565) 90%, transparent), transparent 75%),
-                  radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--cover-glow, #8469c4) 50%, #06070d), #040508)
-                `,
-                border: '1px solid rgba(255, 255, 255, 0.28)',
-                boxShadow:
-                  '0 0 16px -2px color-mix(in srgb, var(--cover-glow, #8469c4) 65%, transparent), inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.8)',
-              }
+            ? isSlowed
+              ? {
+                  /* Slowed + Reverb: Deep dark colors from album cover + starry cosmic sky, zero shadows */
+                  background: `
+                    radial-gradient(1px 1px at 25% 28%, rgba(255,255,255,0.95), transparent),
+                    radial-gradient(1px 1px at 72% 32%, rgba(255,255,255,0.9), transparent),
+                    radial-gradient(1.2px 1.2px at 45% 72%, rgba(255,255,255,0.95), transparent),
+                    radial-gradient(0.8px 0.8px at 80% 65%, rgba(255,255,255,0.8), transparent),
+                    radial-gradient(1px 1px at 28% 78%, rgba(255,255,255,0.7), transparent),
+                    radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--cover-a, #151d2f) 85%, transparent), transparent 75%),
+                    color-mix(in srgb, var(--cover-a, #151d2f) 90%, #06070c)
+                  `,
+                  border: '1px solid rgba(255, 255, 255, 0.22)',
+                  boxShadow: 'none',
+                }
+              : {
+                  /* Speed Up: Light luminous colors from album cover + starry cosmic sky, zero shadows */
+                  background: `
+                    radial-gradient(1px 1px at 25% 28%, rgba(255,255,255,0.95), transparent),
+                    radial-gradient(1px 1px at 72% 32%, rgba(255,255,255,0.9), transparent),
+                    radial-gradient(1.2px 1.2px at 45% 72%, rgba(255,255,255,0.95), transparent),
+                    radial-gradient(0.8px 0.8px at 80% 65%, rgba(255,255,255,0.8), transparent),
+                    radial-gradient(1px 1px at 28% 78%, rgba(255,255,255,0.7), transparent),
+                    radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--cover-c, #e09887) 90%, transparent), transparent 75%),
+                    color-mix(in srgb, var(--cover-c, #e09887) 85%, #f5f5f7)
+                  `,
+                  border: '1px solid rgba(255, 255, 255, 0.40)',
+                  boxShadow: 'none',
+                }
             : undefined
         }
       >
-        <Wand2
-          size={18}
-          strokeWidth={1.6}
-          className={isCustomMode ? 'drop-shadow-[0_0_6px_rgba(255,255,255,0.85)]' : ''}
-        />
+        <Wand2 size={18} strokeWidth={1.75} />
       </button>
 
       {/* Flyout Glass Popup with 3D Waterfall Edge & Cover Liquid Glass Tint */}
