@@ -85,13 +85,7 @@ export const MildWaveDrawer: React.FC<MildWaveDrawerProps> = ({ isOpen, onClose 
       {/* Drawer */}
       <div className="relative w-full max-w-xl h-full glass-panel border-l border-white/10 flex flex-col shadow-2xl z-10 animate-drawer-in">
         {/* Header */}
-        <div className="p-6 border-b border-white/8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300">
-              <Radio size={22} strokeWidth={1.5} />
-            </div>
-            <h2 className="text-xl font-bold text-white tracking-tight">MildWave Radio</h2>
-          </div>
+        <div className="px-6 py-4 border-b border-white/8 flex items-center justify-end">
           <button
             onClick={onClose}
             className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 btn-spring cursor-pointer"

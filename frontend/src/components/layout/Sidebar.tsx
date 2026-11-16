@@ -112,14 +112,11 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
                 <Radio size={18} strokeWidth={1.5} className="text-indigo-400" />
               </div>
               <div
-                className={`overflow-hidden whitespace-nowrap flex items-center justify-between flex-1 transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                className={`overflow-hidden whitespace-nowrap flex items-center flex-1 transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                   isCollapsed ? 'max-w-0 opacity-0 pointer-events-none ml-0' : 'max-w-[160px] opacity-100 ml-3'
                 }`}
               >
                 <span>MildWave</span>
-                <span className="text-[9px] font-mono bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-400/30 ml-2">
-                  Smart
-                </span>
               </div>
             </button>
           </nav>

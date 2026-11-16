@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ListMusic, Play, Sparkles, Trash2, X } from 'lucide-react';
+import { ListMusic, Play, Trash2, X } from 'lucide-react';
 import { useAudioPlayer } from '../../context/AudioPlayerContext';
 import { useUserStore } from '../../context/UserStoreContext';
 import { buildPersonalizedQueue } from '../../services/recommendation';
@@ -138,11 +138,9 @@ export const QueuePanel: React.FC = React.memo(() => {
           <button
             onClick={handleGenerateMix}
             disabled={isGenerating}
-            title="Пересобрать персональную подборку на основе лайков и истории"
-            className="text-xs text-neutral-300 hover:text-white btn-spring flex items-center gap-1 cursor-pointer px-2 py-1 rounded-lg bg-white/6 hover:bg-white/12 border border-white/10 transition-all"
+            className="text-xs text-neutral-300 hover:text-white btn-spring flex items-center cursor-pointer px-2.5 py-1 rounded-lg bg-white/6 hover:bg-white/12 border border-white/10 transition-all"
           >
-            <Sparkles size={12} strokeWidth={1.5} className={isGenerating ? 'animate-spin text-indigo-400' : 'text-indigo-400'} />
-            <span className="hidden sm:inline">{isGenerating ? 'Микс...' : 'Микс'}</span>
+            <span>{isGenerating ? 'Подборка...' : 'Подборка'}</span>
           </button>
 
           {queue.length > 0 && (

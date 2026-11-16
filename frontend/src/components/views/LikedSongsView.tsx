@@ -11,16 +11,11 @@ export const LikedSongsView: React.FC = () => {
   return (
     <div className="glass-panel rounded-3xl p-5 sm:p-7 flex-1 min-h-0 h-full flex flex-col overflow-hidden">
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/25 flex items-center justify-center text-rose-400">
-            <Heart size={20} strokeWidth={1.5} fill="currentColor" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-white tracking-tight">Любимые треки</h2>
-            <p className="text-xs text-neutral-400 font-mono">
-              Сохранено: {likedTracks.length} треков
-            </p>
-          </div>
+        <div>
+          <h2 className="text-xl font-bold text-white tracking-tight">Любимые треки</h2>
+          <p className="text-xs text-neutral-400 font-mono">
+            Сохранено: {likedTracks.length} треков
+          </p>
         </div>
 
         {likedTracks.length > 0 && (

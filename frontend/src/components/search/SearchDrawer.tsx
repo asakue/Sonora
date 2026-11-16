@@ -87,9 +87,6 @@ export const SearchDrawer: React.FC<SearchDrawerProps> = ({ isOpen, onClose }) =
         {/* Header */}
         <div className="p-6 border-b border-white/8 flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-mono tracking-widest uppercase text-indigo-400 font-bold">
-              SoundCloud Catalog
-            </span>
             <h2 className="text-xl font-bold text-white tracking-tight">Поиск треков</h2>
           </div>
           <button

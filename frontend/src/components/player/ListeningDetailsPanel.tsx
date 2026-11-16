@@ -8,7 +8,6 @@ export const ListeningDetailsPanel: React.FC = React.memo(() => {
   return (
     <div
       onClick={() => setIsMixerOpen(true)}
-      title="Нажмите, чтобы открыть Микшер"
       className="group glass-panel rounded-3xl p-4 sm:p-5 flex flex-col justify-center items-center h-[120px] sm:h-[135px] flex-shrink-0 relative overflow-hidden cursor-pointer select-none transition-all duration-300 hover:border-white/24 hover:shadow-[0_0_24px_var(--cover-glow,rgba(168,85,247,0.3))]"
     >
       {/* Background Liquid Glass specular sheen on hover */}
