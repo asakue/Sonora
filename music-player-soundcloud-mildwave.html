@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sonora — Music Player</title>
+<style>
+  :root{
+    color-scheme:dark;
+    --ink:#f7f7f8; --muted:#9a9ba3; --faint:#6f717d;
+    --line:rgba(255,255,255,.12); --glass:rgba(25,27,34,.52);
+    --glass-strong:rgba(39,41,51,.67); --blue:#8cb7ff; --violet:#c8a7ff;
+    --radius-xl:28px; --radius-lg:20px; --radius-md:14px;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:#0c0d11;color:var(--ink)}
+  body{overflow-x:hidden}
+  button{font:inherit;color:inherit;border:0;cursor:pointer}
+  button:focus-visible,.seek:focus-visible,.volume:focus-visible{outline:2px solid #c6d8ff;outline-offset:4px}
+  .stage{min-height:100vh;position:relative;overflow:hidden;background:
+    radial-gradient(900px 520px at 76% 12%,rgba(98,90,181,.33),transparent 64%),
+    radial-gradient(720px 520px at 27% 24%,rgba(37,111,162,.23),transparent 65%),
+    linear-gradient(145deg,#11131b 0%,#0b0c10 54%,#101017 100%)}
+  .stage:before,.stage:after{content:"";position:absolute;pointer-events:none;filter:blur(2px);opacity:.55}
+  .stage:before{width:520px;height:520px;left:-210px;bottom:-250px;border-radius:50%;background:radial-gradient(circle at 52% 42%,rgba(115,193,255,.22),transparent 61%)}
+  .stage:after{width:420px;height:420px;right:-140px;bottom:-210px;border-radius:50%;background:radial-gradient(circle at 45% 43%,rgba(222,151,255,.18),transparent 64%)}
+  .noise{position:absolute;inset:0;pointer-events:none;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.75'/%3E%3C/svg%3E")}
+  .app{position:relative;z-index:1;display:grid;grid-template-columns:244px minmax(0,1fr);gap:18px;max-width:1480px;margin:0 auto;padding:22px;min-height:100vh}
+  .glass{background:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.035));border:1px solid var(--line);box-shadow:0 22px 65px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.11);backdrop-filter:blur(28px) saturate(150%);-webkit-backdrop-filter:blur(28px) saturate(150%)}
+  .sidebar{border-radius:var(--radius-xl);padding:18px 14px;display:flex;flex-direction:column;min-height:calc(100vh - 44px)}
+  .brand{display:flex;align-items:center;gap:11px;padding:7px 10px 28px;font-weight:720;letter-spacing:-.03em;font-size:18px}
+  .brand-mark{width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#eef6ff,#8eb0ff 50%,#9b6ff4);display:grid;place-items:center;color:#10101a;box-shadow:0 8px 20px rgba(131,143,255,.3)}
+  .brand-mark svg{width:16px;height:16px}
+  .nav-label{padding:0 12px 9px;color:#6e7079;font-size:10px;text-transform:uppercase;letter-spacing:.14em;font-weight:700}
+  nav{display:grid;gap:4px}
+  .nav-item{width:100%;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;color:#a9aab4;background:transparent;text-align:left;transition:.2s ease}
+  .nav-item:hover{background:rgba(255,255,255,.07);color:#fff}.nav-item.active{background:rgba(255,255,255,.13);color:#fff;box-shadow:inset 0 1px rgba(255,255,255,.12)}
+  .nav-item svg{width:18px;height:18px;opacity:.9}.nav-item span{font-size:13px;font-weight:580}
+  .sidebar-spacer{flex:1}
+  .profile{margin:18px 3px 3px;padding-top:16px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(145deg,#d4b4ff,#7e9fff);display:grid;place-items:center;color:#12131a;font-weight:700;font-size:12px}
+  .profile-info{min-width:0}.profile-name{font-size:12px;font-weight:650}.profile-meta{font-size:10px;color:var(--muted);margin-top:3px}
+  .main{min-width:0;display:flex;flex-direction:column;gap:18px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;min-height:44px;padding:0 4px}
+  .crumb{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.crumb b{color:var(--ink);font-weight:650}.crumb-dot{width:4px;height:4px;border-radius:50%;background:#696b79}
+  .top-actions{display:flex;gap:8px}.icon-button{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);display:grid;place-items:center;color:#c3c4cd;transition:.2s}.icon-button:hover{background:rgba(255,255,255,.13);color:#fff;transform:translateY(-1px)}.icon-button svg{width:17px;height:17px}
+  .content-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:18px;align-items:stretch}
+  .hero{position:relative;min-height:542px;padding:30px;border-radius:var(--radius-xl);overflow:hidden;display:flex;flex-direction:column;justify-content:space-between}
+  .hero-glow{position:absolute;inset:auto -100px -180px auto;width:500px;height:500px;background:radial-gradient(circle,rgba(117,103,255,.24),transparent 66%);pointer-events:none}
+  .eyebrow{position:relative;z-index:1;color:#a4a5af;font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-weight:700}
+  .hero-core{position:relative;z-index:1;display:grid;grid-template-columns:minmax(210px,43%) 1fr;gap:34px;align-items:center;margin-top:6px}
+  .cover{aspect-ratio:1;border-radius:24px;position:relative;overflow:hidden;box-shadow:0 20px 45px rgba(0,0,0,.38),0 0 0 1px rgba(255,255,255,.16);background:#252342}
+  .cover svg{width:100%;height:100%;display:block}.cover:after{content:"";position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.18),transparent 34%,rgba(0,0,0,.16));mix-blend-mode:screen;pointer-events:none}
+  .track-info{min-width:0}.kicker{font-size:12px;color:#b4b5bf;margin-bottom:14px}.title{font-size:clamp(40px,4.8vw,72px);line-height:.96;letter-spacing:-.07em;margin:0 0 12px;font-weight:720}.artist{font-size:16px;color:#b9bac3;margin-bottom:24px}.artist span{color:#f2f2f4;font-weight:600}
+  .tag-row{display:flex;flex-wrap:wrap;gap:8px}.tag{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.09);color:#bfc0c9;font-size:11px}
+  .player{position:relative;z-index:1}.timeline{display:flex;align-items:center;gap:10px;color:#a5a6af;font-size:11px}.seek{appearance:none;width:100%;height:4px;border-radius:99px;background:linear-gradient(to right,#ecedff 0 36%,rgba(255,255,255,.18) 36% 100%);cursor:pointer}.seek::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.35)}.seek::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:#fff}
+  .player-row{display:flex;align-items:center;justify-content:space-between;margin-top:18px}.transport{display:flex;align-items:center;gap:12px;margin:auto}.transport button{background:transparent;color:#9fa0aa;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;transition:.2s}.transport button:hover{color:#fff;background:rgba(255,255,255,.08)}.transport svg{width:18px;height:18px}.transport .play{width:54px;height:54px;background:#f3f3f4;color:#181922;box-shadow:0 8px 24px rgba(0,0,0,.3)}.transport .play:hover{background:#fff;transform:scale(1.04)}.transport .play svg{width:21px;height:21px;fill:currentColor}
+  .utility{display:flex;align-items:center;gap:6px}.utility button{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:transparent;color:#9fa0aa}.utility button:hover,.utility button.liked{color:#ff9bb7;background:rgba(255,145,176,.11)}.utility svg{width:16px;height:16px}
+  .right-col{display:grid;grid-template-rows:1fr 1fr;gap:18px}.panel{border-radius:var(--radius-xl);padding:22px;min-width:0}.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.panel-title{font-size:14px;font-weight:680;letter-spacing:-.02em}.panel-link{font-size:11px;color:#9fa0aa;background:transparent}.panel-link:hover{color:#fff}
+  .visualizer{min-height:248px;display:flex;flex-direction:column}.viz{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:5px 7px 16px}.bar{width:5px;border-radius:99px;background:linear-gradient(to top,#829df7,#d8c9ff);opacity:.88;animation:pulse 1.2s ease-in-out infinite alternate;box-shadow:0 0 12px rgba(162,164,255,.18)}.bar:nth-child(2n){animation-delay:-.45s}.bar:nth-child(3n){animation-delay:-.8s}.bar:nth-child(4n){animation-delay:-.2s}@keyframes pulse{from{height:18px;opacity:.5}to{height:var(--h);opacity:1}}
+  .insight{display:flex;gap:12px;align-items:flex-start;padding-top:13px;border-top:1px solid var(--line)}.insight-orb{width:28px;height:28px;border-radius:50%;background:linear-gradient(145deg,rgba(171,199,255,.8),rgba(151,105,255,.7));box-shadow:0 0 20px rgba(145,133,255,.28);flex:none}.insight-text{font-size:11px;line-height:1.5;color:#a4a5ae}.insight-text b{color:#ededf0;font-weight:600}
+  .queue{min-height:0}.queue-list{display:grid;gap:8px}.queue-item{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:11px;padding:8px;border-radius:13px;transition:.2s}.queue-item:hover,.queue-item.current{background:rgba(255,255,255,.075)}.q-index{font-size:11px;color:#72747f;text-align:center}.q-art{width:30px;height:30px;border-radius:8px;overflow:hidden}.q-art svg{width:100%;height:100%;display:block}.q-info{min-width:0}.q-title{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.q-artist{font-size:10px;color:#858792;margin-top:3px}.q-time{font-size:10px;color:#747680}.live{font-size:9px;color:#b8caff;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+  .bottom-row{display:grid;grid-template-columns:1.25fr .75fr;gap:18px}.recent,.devices{padding:21px 22px;border-radius:var(--radius-xl)}.recent-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.recent-card{display:flex;align-items:center;gap:10px;min-width:0;padding:9px;border-radius:14px;transition:.2s}.recent-card:hover{background:rgba(255,255,255,.07)}.recent-art{width:46px;height:46px;border-radius:12px;overflow:hidden;flex:none}.recent-art svg{width:100%;height:100%;display:block}.recent-name{font-size:11px;font-weight:620;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.recent-meta{font-size:10px;color:#83858f;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.device-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.device{display:flex;align-items:center;gap:11px}.device-icon{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.09);color:#becbff}.device-icon svg{width:19px;height:19px}.device-name{font-size:12px;font-weight:620}.device-meta{font-size:10px;color:#7f818d;margin-top:3px}.connected{width:8px;height:8px;border-radius:50%;background:#6ee6af;box-shadow:0 0 12px #6ee6af}
+  @media (max-width:1000px){.app{grid-template-columns:72px 1fr}.sidebar{padding:16px 10px}.brand{justify-content:center;padding:7px 0 28px}.brand-word,.nav-label,.nav-item span,.profile-info{display:none}.nav-item{justify-content:center;padding:12px}.profile{justify-content:center}.hero-core{grid-template-columns:minmax(175px,42%) 1fr;gap:24px}}
+  @media (max-width:760px){.app{display:block;padding:14px}.sidebar{min-height:auto;margin-bottom:14px;display:flex;flex-direction:row;align-items:center;padding:10px 12px;border-radius:18px}.brand{padding:0 10px 0 0}.nav-label,.sidebar-spacer,.profile{display:none}nav{display:flex;flex:1;justify-content:flex-end;gap:3px}.nav-item{width:42px;height:42px;padding:0}.nav-item span{display:none}.topbar{padding:0 2px}.content-grid,.bottom-row{grid-template-columns:1fr}.right-col{grid-template-rows:auto auto}.hero{min-height:620px;padding:22px}.hero-core{grid-template-columns:1fr;gap:24px}.cover{width:min(68vw,300px);margin:0 auto}.title{font-size:48px}.recent-grid{grid-template-columns:1fr}.panel{padding:18px}.visualizer{min-height:220px}}
+  @media (prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+/* restrained editorial pass */
+.stage{background:linear-gradient(145deg,#14161b 0%,#0e1014 56%,#15151b 100%)}
+.stage:before,.stage:after,.noise{display:none}
+.glass{background:rgba(27,29,35,.78);border-color:rgba(255,255,255,.10);box-shadow:0 18px 40px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(20px) saturate(115%);-webkit-backdrop-filter:blur(20px) saturate(115%)}
+.sidebar,.hero,.panel,.recent,.devices{border-radius:18px}
+.hero{padding:28px}
+.hero-glow{display:none}
+.title{letter-spacing:-.065em}
+.tag{border-radius:8px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10)}
+.nav-item{border-radius:10px}
+.nav-item.active{background:rgba(255,255,255,.10)}
+.cover{border-radius:18px}
+.icon-button,.transport .play{border-radius:12px}
+.transport .play{border-radius:50%}
+.recent-card,.queue-item{border-radius:10px}
+.insight-orb{border-radius:9px;background:#94aefb;box-shadow:none}
+
+
+@media (max-width:760px){
+  body{background:#0e1014}
+  .app{display:block;padding:14px}
+  .sidebar{position:relative;z-index:2;left:auto;right:auto;bottom:auto;width:auto;height:auto;min-height:0;margin:0 0 14px;padding:8px 10px;border-radius:16px;display:flex;align-items:center;background:rgba(28,30,37,.94);box-shadow:0 12px 28px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.09)}
+  .brand{display:flex;padding:0 8px 0 0;gap:8px}
+  .brand-mark{width:30px;height:30px}
+  .brand-word{display:inline;font-size:15px}
+  .nav-label,.sidebar-spacer,.profile{display:none}
+  .sidebar nav{display:flex;align-items:center;justify-content:space-around;gap:2px;flex:1}
+  .nav-item{width:42px;height:42px;padding:0;display:grid;place-items:center;background:transparent}
+  .nav-item.active{background:rgba(228,234,255,.16);color:#fff}
+  .nav-item span{display:none}
+  .nav-item svg{width:18px;height:18px}
+  .main{gap:14px}
+  .topbar{min-height:38px;padding:0 2px}
+  .crumb{font-size:12px}.crumb b:before{display:none}.crumb b{font-size:0}.crumb b:after{content:'Listen now';font-size:12px}.crumb-dot{display:none}.crumb #navStatus{display:none}
+  .top-actions{gap:5px}.icon-button{width:36px;height:36px;border-radius:11px}
+  .content-grid{display:flex;flex-direction:column;gap:14px}
+  .hero{min-height:0;padding:18px;border-radius:18px;gap:0}
+  .hero-core{display:flex;flex-direction:column;gap:18px;align-items:stretch;margin-top:16px}
+  .cover{width:min(78vw,300px);margin:0 auto;border-radius:16px}
+  .track-info{padding:0 4px}.kicker{font-size:11px;margin-bottom:9px}.title{font-size:clamp(43px,14vw,57px);line-height:.95;margin-bottom:9px}.artist{font-size:14px;margin-bottom:14px}.tag-row{gap:6px}.tag{font-size:10px;padding:6px 8px}
+  .player{margin-top:36px}.timeline{gap:8px;font-size:10px}.seek{height:3px}.seek::-webkit-slider-thumb{width:10px;height:10px}.seek::-moz-range-thumb{width:10px;height:10px}
+  .player-row{margin-top:14px}.transport{gap:9px}.transport .play{width:48px;height:48px}.transport button{width:32px;height:32px}.utility button{width:30px;height:30px}
+  .right-col{display:flex;flex-direction:column;gap:14px}.panel{padding:17px;border-radius:18px}.visualizer{min-height:190px}.viz{padding:0 4px 14px}.bar{width:4px}.insight{padding-top:11px}.queue-list{gap:4px}.queue-item{padding:8px 6px}.q-time{font-size:10px}
+  .bottom-row{display:flex;flex-direction:column;gap:14px}.recent,.devices{padding:17px;border-radius:18px}.recent-grid{gap:4px}.recent-card{padding:8px 5px}.recent-art{width:42px;height:42px}
+}
+
+
+/* cover-led atmosphere */
+:root{--cover-a:#1d3451;--cover-b:#563d7d;--cover-c:#d28784}
+.stage{background:
+  radial-gradient(680px 500px at 78% 8%,color-mix(in srgb,var(--cover-b) 42%,transparent),transparent 70%),
+  radial-gradient(720px 520px at 22% 70%,color-mix(in srgb,var(--cover-a) 40%,transparent),transparent 68%),
+  linear-gradient(145deg,#111821 0%,#0e1014 54%,#17131b 100%)}
+.stage:before,.stage:after{display:block;opacity:.48;filter:blur(10px)}
+.stage:before{background:radial-gradient(circle at 52% 42%,color-mix(in srgb,var(--cover-a) 32%,transparent),transparent 61%)}
+.stage:after{background:radial-gradient(circle at 45% 43%,color-mix(in srgb,var(--cover-c) 24%,transparent),transparent 64%)}
+
+@media (max-width:760px){
+  .app{padding:14px 14px 96px}
+  .sidebar{position:fixed;z-index:30;left:14px;right:14px;bottom:14px;width:auto;height:64px;min-height:0;margin:0;padding:8px 10px;border-radius:16px;display:flex;align-items:center;background:rgba(28,30,37,.96);box-shadow:0 14px 34px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.09)}
+  .brand,.nav-label,.sidebar-spacer,.profile{display:none}
+  .sidebar nav{display:flex;align-items:center;justify-content:space-around;gap:2px;flex:1}
+  .nav-item{width:46px;height:46px;padding:0;display:grid;place-items:center;background:transparent}
+  .nav-item.active{background:rgba(228,234,255,.16);color:#fff}
+  .nav-item span{display:none}
+  .nav-item svg{width:18px;height:18px}
+  .main{padding-bottom:0}
+  .content-grid{padding-bottom:76px}
+  .right-col{margin-top:86px}
+}
+
+
+/* de-branded navigation */
+.sidebar{padding-top:30px}
+.profile{padding-left:6px}
+@media (max-width:760px){.sidebar{padding-top:8px}.profile{padding-left:0}}
+
+
+/* liquid-glass sections restored */
+.glass{background:linear-gradient(145deg,rgba(255,255,255,.105),rgba(255,255,255,.035));border-color:rgba(255,255,255,.14);box-shadow:0 22px 65px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(255,255,255,.025);backdrop-filter:blur(28px) saturate(150%);-webkit-backdrop-filter:blur(28px) saturate(150%)}
+.sidebar,.hero,.panel,.recent,.devices{border-radius:28px}
+.hero{padding:30px}
+.hero-glow{display:block;opacity:.8}
+.nav-item.active{background:rgba(255,255,255,.13);box-shadow:inset 0 1px rgba(255,255,255,.12)}
+.recent-card,.queue-item{border-radius:13px}
+@media (max-width:760px){
+  .sidebar,.hero,.panel,.recent,.devices{border-radius:18px}
+  .hero{padding:18px}
+}
+/* responsive state is selected with switch cases; CSS remains the safe fallback */
+html[data-layout="tablet"] .content-grid{grid-template-columns:minmax(0,1fr)}
+html[data-layout="tablet"] .right-col{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none}
+html[data-layout="mobile"] .content-grid{display:flex;flex-direction:column}
+
+
+/* collapsible navigation */
+.topbar-left{display:flex;align-items:center;gap:10px;min-width:0}
+.sidebar-toggle{width:38px;height:38px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.11);border-radius:12px;background:rgba(255,255,255,.07);color:#c5c8d5;transition:background .2s ease,transform .25s ease,color .2s ease}
+.sidebar-toggle:hover{background:rgba(255,255,255,.14);color:#fff}
+.sidebar-toggle svg{width:18px;height:18px}
+.sidebar{transition:width .28s ease,background .28s ease,transform .28s ease}
+.app{transition:grid-template-columns .28s ease}
+.nav-item{justify-content:flex-start}
+.nav-item svg{width:19px;height:19px;flex:none;stroke-linecap:round;stroke-linejoin:round}
+.app.sidebar-collapsed{grid-template-columns:72px minmax(0,1fr)}
+.app.sidebar-collapsed .sidebar{padding-left:10px;padding-right:10px}
+.app.sidebar-collapsed .nav-label,.app.sidebar-collapsed .nav-item span,.app.sidebar-collapsed .profile-info{display:none}
+.app.sidebar-collapsed .nav-item{justify-content:center;padding-left:0;padding-right:0}
+.app.sidebar-collapsed .profile{justify-content:center;padding-left:0}
+.app.sidebar-collapsed .profile .icon-button{margin-left:0!important}
+.app.sidebar-collapsed .sidebar-toggle{transform:rotate(180deg)}
+@media (max-width:1000px) and (min-width:761px){.app.sidebar-collapsed{grid-template-columns:72px minmax(0,1fr)}}
+@media (max-width:760px){
+  .topbar-left{gap:8px}
+  .sidebar-toggle{width:36px;height:36px;border-radius:11px}
+  .app.sidebar-collapsed .sidebar{transform:translateY(calc(100% + 18px))}
+  .app.sidebar-collapsed .sidebar-toggle{transform:none}
+  .nav-item svg{width:20px;height:20px}
+}
+
+
+/* SoundCloud search + MildWave inspired panels */
+.feature-drawer{position:fixed;z-index:40;top:76px;right:24px;width:min(520px,calc(100vw - 48px));max-height:calc(100vh - 100px);padding:22px;opacity:0;pointer-events:none;transform:translateY(-10px) scale(.98);transition:opacity .22s ease,transform .22s ease;overflow:auto}
+.feature-drawer.open{opacity:1;pointer-events:auto;transform:none}
+.drawer-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}.drawer-kicker{display:block;color:#a8aab5;font-size:10px;letter-spacing:.14em;font-weight:700}.drawer-head h2{margin:6px 0 0;font-size:24px;letter-spacing:-.04em}.drawer-close{width:34px;height:34px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.11);font-size:22px;color:#caccd4;line-height:1}.drawer-close:hover{background:rgba(255,255,255,.15);color:#fff}
+.search-field{height:48px;display:flex;align-items:center;gap:11px;padding:0 12px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13)}.search-field svg{width:18px;height:18px;color:#acafbb;flex:none}.search-field input{flex:1;min-width:0;background:none;border:0;outline:0;color:#fff;font:inherit;font-size:14px}.search-field input::placeholder{color:#858894}.search-field button{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.1);color:#dce0ed}.drawer-status{margin:13px 2px;color:#858895;font-size:11px;line-height:1.45}.cloud-results{display:grid;gap:7px}.cloud-result{display:grid;grid-template-columns:44px 1fr auto;gap:11px;align-items:center;padding:8px;border-radius:12px;background:rgba(255,255,255,.045);border:1px solid transparent;text-align:left;transition:.18s}.cloud-result:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.12)}.cloud-art{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#5762a0,#bb7d9b);background-size:cover;background-position:center}.cloud-title{font-size:12px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cloud-artist{font-size:10px;color:#8f919c;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cloud-time{font-size:10px;color:#878995}.wave-hero{display:flex;gap:14px;align-items:center;padding:14px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}.wave-orb{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;gap:3px;background:radial-gradient(circle at 35% 30%,#e2d0ff,#7364d1 56%,#2e304e);box-shadow:0 10px 25px rgba(84,87,176,.3);flex:none}.wave-orb i{display:block;width:3px;border-radius:4px;background:#fff;opacity:.82}.wave-orb i:nth-child(1){height:14px}.wave-orb i:nth-child(2){height:24px}.wave-orb i:nth-child(3){height:36px}.wave-orb i:nth-child(4){height:20px}.wave-orb i:nth-child(5){height:31px}.wave-orb i:nth-child(6){height:16px}.wave-orb i:nth-child(7){height:27px}.wave-hero b{font-size:13px}.wave-hero p{margin:5px 0 0;color:#9a9ca8;font-size:11px;line-height:1.45}.wave-styles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.wave-style{padding:8px;border-radius:12px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);text-align:left}.wave-style.active{background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.24)}.style-swatch{display:block;height:48px;border-radius:8px;margin-bottom:8px}.style-swatch.aura{background:radial-gradient(circle,#c4a6ff 0 14%,#6d65c7 38%,#1b1d2b 72%)}.style-swatch.vinyl{background:repeating-radial-gradient(circle at 50% 50%,#32314e 0 3px,#1a1b25 4px 7px,#aa8fd4 8px 9px)}.style-swatch.minimal{background:linear-gradient(180deg,#2c2d34,#17181d)}.wave-style b{display:block;font-size:11px}.wave-style small{display:block;color:#858793;font-size:9px;margin-top:3px}.wave-start{width:100%;height:42px;border-radius:12px;background:linear-gradient(135deg,#a8bfff,#d4b0ff);color:#171925;font-weight:700;box-shadow:0 10px 22px rgba(129,128,224,.22)}.wave-start:hover{filter:brightness(1.08);transform:translateY(-1px)}
+@media (max-width:760px){.feature-drawer{top:68px;right:14px;width:calc(100vw - 28px);max-height:calc(100vh - 88px);padding:18px}.wave-styles{gap:5px}.wave-style{padding:6px}.style-swatch{height:40px}}
+
+</style>
+</head>
+<body>
+<div class="stage"><div class="noise"></div>
+  <div class="app">
+    <aside class="sidebar glass" aria-label="Основная навигация">
+      <div class="nav-label">Library</div>
+      <nav>
+        <button class="nav-item active" data-nav="Listen" aria-label="Listen"><svg viewBox="0 0 24 24" fill="none"><path d="M4.5 12h3.2l1.7-3.7 2.2 7.2 1.8-4.1h6.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Listen now</span></button>
+        <button class="nav-item" data-nav="Browse" aria-label="Browse"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Browse</span></button>
+        <button class="nav-item" data-nav="Wave" aria-label="MildWave"><svg viewBox="0 0 24 24" fill="none"><path d="M6.3 16.7a7.8 7.8 0 0 1 11.4 0M8.7 13.8a4.7 4.7 0 0 1 6.6 0M12 10.1v.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="18.3" r="1.2" fill="currentColor"/></svg><span>MildWave</span></button>
+      </nav>
+      <div class="nav-label" style="margin-top:28px">Your space</div>
+      <nav>
+        <button class="nav-item" data-nav="Albums" aria-label="Albums"><svg viewBox="0 0 24 24" fill="none"><rect x="4.5" y="4.5" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="13.5" y="4.5" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="4.5" y="13.5" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="13.5" y="13.5" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.7"/></svg><span>Albums</span></button>
+        <button class="nav-item" data-nav="Liked" aria-label="Liked songs"><svg viewBox="0 0 24 24" fill="none"><path d="M20.5 8.6c0 5.3-8.5 10-8.5 10s-8.5-4.7-8.5-10A4.3 4.3 0 0 1 12 6.1a4.3 4.3 0 0 1 8.5 2.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Liked songs</span></button>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="profile"><div class="profile-info"><div class="profile-name">Alex Kim</div><div class="profile-meta">Individual plan</div></div><button class="icon-button" style="margin-left:auto;width:30px;height:30px;background:transparent;border:0" aria-label="Настройки"><svg viewBox="0 0 24 24" fill="none"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z" stroke="currentColor" stroke-width="1.6"/><path d="m19.4 15 .1.1a1.8 1.8 0 0 1-2.5 2.5l-.1-.1a1.8 1.8 0 0 0-3 .9v.2a1.8 1.8 0 0 1-3.6 0v-.2a1.8 1.8 0 0 0-3-.9l-.1.1a1.8 1.8 0 0 1-2.5-2.5l.1-.1a1.8 1.8 0 0 0-.9-3h-.2a1.8 1.8 0 0 1 0-3.6H4a1.8 1.8 0 0 0 .9-3l-.1-.1a1.8 1.8 0 0 1 2.5-2.5l.1.1a1.8 1.8 0 0 0 3-.9V2a1.8 1.8 0 0 1 3.6 0v.2a1.8 1.8 0 0 0 3 .9l.1-.1a1.8 1.8 0 0 1 2.5 2.5l-.1.1a1.8 1.8 0 0 0 .9 3h.2a1.8 1.8 0 0 1 0 3.6h-.2a1.8 1.8 0 0 0-.9 3Z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button></div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><div class="topbar-left"><button class="sidebar-toggle" id="sidebarToggle" aria-label="Свернуть боковую панель" aria-expanded="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M5 12h14M5 17h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button><div class="crumb"><b>Listen now</b><span class="crumb-dot"></span><span id="navStatus">Curated for you</span></div></div><div class="top-actions"><button class="icon-button" id="searchBtn" aria-label="Поиск"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button><button class="icon-button" aria-label="Уведомления"><svg viewBox="0 0 24 24" fill="none"><path d="M18 9.8a6 6 0 0 0-12 0c0 7-2.5 7-2.5 8.5h17C20.5 16.8 18 16.8 18 9.8ZM10 21h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></header>
+      <section class="content-grid">
+        <article class="hero glass"><div class="hero-glow"></div><div class="eyebrow">Now playing</div><div class="hero-core"><div class="cover" id="trackCover" aria-label="Обложка альбома Midnight Drive"><svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#151e4b"/><stop offset=".48" stop-color="#6b3d86"/><stop offset="1" stop-color="#f19a82"/></linearGradient><radialGradient id="sun"><stop stop-color="#fff5d0"/><stop offset=".38" stop-color="#ffd28b" stop-opacity=".9"/><stop offset="1" stop-color="#ff9f90" stop-opacity="0"/></radialGradient><linearGradient id="road" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#32234b"/><stop offset="1" stop-color="#0c1124"/></linearGradient><filter id="blur"><feGaussianBlur stdDeviation="20"/></filter></defs><rect width="500" height="500" fill="url(#sky)"/><circle cx="365" cy="166" r="120" fill="url(#sun)" filter="url(#blur)"/><circle cx="365" cy="166" r="47" fill="#ffdba3" opacity=".92"/><path d="M0 315 Q120 250 226 303 T500 272 V500H0Z" fill="#241d48" opacity=".72"/><path d="M0 362 Q114 309 242 349 T500 325 V500H0Z" fill="url(#road)"/><path d="M253 336 L280 500 M253 336 L192 500 M253 336 L368 500 M253 336 L421 500" stroke="#7c628f" stroke-opacity=".42" stroke-width="3"/><path d="M248 342 L248 500" stroke="#f9d895" stroke-opacity=".85" stroke-width="5" stroke-dasharray="24 22"/><path d="M0 410 Q140 356 246 382 T500 364" stroke="#fff0d4" stroke-opacity=".18" stroke-width="3" fill="none"/><circle cx="79" cy="111" r="2" fill="#fff" opacity=".8"/><circle cx="120" cy="77" r="1.5" fill="#fff" opacity=".7"/><circle cx="238" cy="106" r="1.8" fill="#fff" opacity=".6"/><circle cx="434" cy="74" r="1.7" fill="#fff" opacity=".8"/></svg></div><div class="track-info"><div class="kicker">Radio 04 · 24-bit</div><h1 class="title" id="trackTitle">Midnight<br>Drive</h1><div class="artist"><span id="trackArtist">Neon Fields</span> · <span id="trackAlbum">Solace</span></div><div class="tag-row"><span class="tag">Dream pop</span><span class="tag">Atmospheric</span><span class="tag">2024</span></div></div></div><div class="player"><div class="timeline"><span>1:43</span><input class="seek" type="range" min="0" max="100" value="36" aria-label="Позиция трека"><span>4:48</span></div><div class="player-row"><div class="utility"><button id="likeBtn" aria-label="Добавить в любимые"><svg viewBox="0 0 24 24" fill="none"><path d="M20.5 8.6c0 5.3-8.5 10-8.5 10s-8.5-4.7-8.5-10A4.3 4.3 0 0 1 12 6.1a4.3 4.3 0 0 1 8.5 2.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></button><button aria-label="Поделиться"><svg viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="2.3" stroke="currentColor" stroke-width="1.6"/><circle cx="6" cy="12" r="2.3" stroke="currentColor" stroke-width="1.6"/><circle cx="18" cy="19" r="2.3" stroke="currentColor" stroke-width="1.6"/><path d="m8.1 11 7.8-4.6M8.1 13l7.8 4.6" stroke="currentColor" stroke-width="1.6"/></svg></button></div><div class="transport"><button aria-label="Предыдущий трек"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM19 6.2v11.6c0 .8-.9 1.3-1.6.9l-7.9-5.8a1.1 1.1 0 0 1 0-1.8l7.9-5.8c.7-.4 1.6.1 1.6.9Z"/></svg></button><button class="play" id="playBtn" aria-label="Воспроизвести"><svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5.8v12.4c0 .9 1 1.4 1.8.9l9-6.2a1.1 1.1 0 0 0 0-1.8l-9-6.2C9 4.4 8 4.9 8 5.8Z"/></svg></button><button aria-label="Следующий трек"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM5 6.2v11.6c0 .8.9 1.3 1.6.9l7.9-5.8a1.1 1.1 0 0 0 0-1.8L6.6 5.3C5.9 4.9 5 5.4 5 6.2Z"/></svg></button></div><div class="utility"><button aria-label="Громкость"><svg viewBox="0 0 24 24" fill="none"><path d="M4 10v4h4l5 4V6l-5 4H4Z" fill="currentColor"/><path d="M16.5 9a4.5 4.5 0 0 1 0 6M18.8 6.7a7.8 7.8 0 0 1 0 10.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button><button aria-label="Еще"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button></div></div></div></article>
+        <div class="right-col"><section class="panel glass visualizer"><div class="panel-head"><div class="panel-title">Listening details</div><button class="panel-link">Open mixer</button></div><div class="viz" aria-label="Визуализатор звучания"><i class="bar" style="--h:72px"></i><i class="bar" style="--h:102px"></i><i class="bar" style="--h:52px"></i><i class="bar" style="--h:128px"></i><i class="bar" style="--h:84px"></i><i class="bar" style="--h:46px"></i><i class="bar" style="--h:112px"></i><i class="bar" style="--h:70px"></i><i class="bar" style="--h:136px"></i><i class="bar" style="--h:88px"></i><i class="bar" style="--h:61px"></i><i class="bar" style="--h:116px"></i><i class="bar" style="--h:78px"></i><i class="bar" style="--h:52px"></i><i class="bar" style="--h:95px"></i><i class="bar" style="--h:66px"></i><i class="bar" style="--h:122px"></i><i class="bar" style="--h:80px"></i><i class="bar" style="--h:45px"></i><i class="bar" style="--h:100px"></i><i class="bar" style="--h:76px"></i><i class="bar" style="--h:110px"></i></div><div class="insight"><div class="insight-orb"></div><div class="insight-text"><b>Built for the night</b><br>Soft textures, steady pace.</div></div></section><section class="panel glass queue"><div class="panel-head"><div class="panel-title">Up next</div><button class="panel-link">See queue</button></div><div class="queue-list"><div class="queue-item current"><div class="q-index"><span class="live">Now</span></div><div class="q-art"><svg viewBox="0 0 40 40"><rect width="40" height="40" fill="#5c4d91"/><circle cx="28" cy="13" r="10" fill="#d4a7cc" opacity=".72"/><path d="M0 31 18 22l22 7v11H0Z" fill="#262342"/></svg></div><div class="q-info"><div class="q-title">Midnight Drive</div><div class="q-artist">Neon Fields</div></div><div class="q-time">4:48</div></div><div class="queue-item"><div class="q-index">02</div><div class="q-art"><svg viewBox="0 0 40 40"><rect width="40" height="40" fill="#203e47"/><circle cx="10" cy="11" r="8" fill="#c3ecdc"/><path d="M0 26 12 19l10 5 18-11v27H0Z" fill="#12252e"/></svg></div><div class="q-info"><div class="q-title">Glass Gardens</div><div class="q-artist">Luma</div></div><div class="q-time">3:54</div></div><div class="queue-item"><div class="q-index">03</div><div class="q-art"><svg viewBox="0 0 40 40"><rect width="40" height="40" fill="#b36f54"/><path d="M0 28 10 16l9 8 8-11 13 15v12H0Z" fill="#453049"/><circle cx="27" cy="9" r="4" fill="#ffddb7"/></svg></div><div class="q-info"><div class="q-title">Afterimage</div><div class="q-artist">Cedar Club</div></div><div class="q-time">4:21</div></div></div></section></div>
+      </section>
+      <section class="bottom-row"><section class="recent glass"><div class="panel-head"><div class="panel-title">Recently played</div><button class="panel-link">View all</button></div><div class="recent-grid"><div class="recent-card"><div class="recent-art"><svg viewBox="0 0 50 50"><rect width="50" height="50" fill="#26364b"/><circle cx="30" cy="23" r="14" fill="#f2c28e"/><path d="M0 37 20 28l30 7v15H0Z" fill="#19212f"/></svg></div><div><div class="recent-name">Still Forms</div><div class="recent-meta">Kite Arc · 2023</div></div></div><div class="recent-card"><div class="recent-art"><svg viewBox="0 0 50 50"><rect width="50" height="50" fill="#6d435b"/><path d="M0 34 13 15l12 13L34 9l16 21v20H0Z" fill="#2e263d"/><circle cx="13" cy="12" r="4" fill="#f8d9b0"/></svg></div><div><div class="recent-name">Soft Focus</div><div class="recent-meta">Mirae · 2022</div></div></div><div class="recent-card"><div class="recent-art"><svg viewBox="0 0 50 50"><rect width="50" height="50" fill="#5a755a"/><path d="M8 50 23 12l8 18 11-13 8 33Z" fill="#d6c47b" opacity=".8"/><circle cx="35" cy="12" r="6" fill="#dbe4b8"/></svg></div><div><div class="recent-name">Parallel Lines</div><div class="recent-meta">Northbound · 2021</div></div></div></div></section><section class="devices glass"><div class="panel-head"><div class="panel-title">Listening on</div><button class="panel-link">Manage</button></div><div class="device-row"><div class="device"><div class="device-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="2.5" stroke="currentColor" stroke-width="1.6"/><path d="M10 18h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div><div><div class="device-name">Alex’s iPhone</div><div class="device-meta">This device · Hi-Res Lossless</div></div></div><span class="connected" aria-label="Подключено"></span></div></section></section>
+      <section class="feature-drawer glass" id="searchPanel" aria-hidden="true"><div class="drawer-head"><div><span class="drawer-kicker">SOURCE</span><h2>SoundCloud search</h2></div><button class="drawer-close" data-close="searchPanel" aria-label="Закрыть поиск">×</button></div><div class="search-field"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><input id="cloudQuery" type="search" placeholder="Трек, исполнитель…" autocomplete="off"><button id="cloudSubmit" aria-label="Искать">↵</button></div><div id="cloudStatus" class="drawer-status">Треки загружаются из публичного SoundCloud API.</div><div id="cloudResults" class="cloud-results"></div></section>
+      <section class="feature-drawer glass" id="wavePanel" aria-hidden="true"><div class="drawer-head"><div><span class="drawer-kicker">PERSONAL RADIO</span><h2>MildWave</h2></div><button class="drawer-close" data-close="wavePanel" aria-label="Закрыть MildWave">×</button></div><div class="wave-hero"><div class="wave-orb"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div><b>Поток похожих треков</b><p>Репертуар строится от понравившихся и недавно прослушанных композиций.</p></div></div><div class="wave-styles"><button class="wave-style active" data-style="aura"><span class="style-swatch aura"></span><b>Аура</b><small>Живое пятно</small></button><button class="wave-style" data-style="vinyl"><span class="style-swatch vinyl"></span><b>Пластинка</b><small>Вращающаяся обложка</small></button><button class="wave-style" data-style="minimal"><span class="style-swatch minimal"></span><b>Минимал</b><small>Строго и спокойно</small></button></div><button id="startWave" class="wave-start">Собрать MildWave</button></section>
+    <audio id="audio" preload="none"></audio>
+    </main>
+  </div>
+</div>
+<script>
+  function setResponsiveLayout(){
+    const width = window.innerWidth;
+    let layout;
+    switch (true) {
+      case width < 760:
+        layout = 'mobile';
+        break;
+      case width < 1000:
+        layout = 'tablet';
+        break;
+      default:
+        layout = 'desktop';
+    }
+    document.documentElement.dataset.layout = layout;
+  }
+  setResponsiveLayout();
+  window.addEventListener('resize', setResponsiveLayout, {passive:true});
+
+  const coverTheme = {a:'#1d3451', b:'#563d7d', c:'#d28784'};
+  Object.entries(coverTheme).forEach(([key, value]) => document.documentElement.style.setProperty('--cover-' + key, value));
+
+
+  const app = document.querySelector('.app');
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  sidebarToggle.addEventListener('click', () => {
+    const collapsed = app.classList.toggle('sidebar-collapsed');
+    sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
+    sidebarToggle.setAttribute('aria-label', collapsed ? 'Развернуть боковую панель' : 'Свернуть боковую панель');
+  });
+
+  const play=document.getElementById('playBtn');
+  const icon=document.getElementById('playIcon');
+  let playing=false;
+  play.addEventListener('click',()=>{playing=!playing;play.setAttribute('aria-label',playing?'Пауза':'Воспроизвести');icon.innerHTML=playing?'<path d="M7 5h3v14H7zM14 5h3v14h-3z"/>':'<path d="M8 5.8v12.4c0 .9 1 1.4 1.8.9l9-6.2a1.1 1.1 0 0 0 0-1.8l-9-6.2C9 4.4 8 4.9 8 5.8Z"/>';document.querySelectorAll('.bar').forEach(b=>b.style.animationPlayState=playing?'running':'paused')});
+  document.getElementById('likeBtn').addEventListener('click',e=>e.currentTarget.classList.toggle('liked'));
+  document.querySelectorAll('.nav-item').forEach(item=>item.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));item.classList.add('active');document.getElementById('navStatus').textContent=item.dataset.nav==='Listen'?'Curated for you':item.dataset.nav}));
+  const audio = document.getElementById('audio');
+  const searchPanel = document.getElementById('searchPanel');
+  const wavePanel = document.getElementById('wavePanel');
+  const cloudQuery = document.getElementById('cloudQuery');
+  const cloudResults = document.getElementById('cloudResults');
+  const cloudStatus = document.getElementById('cloudStatus');
+  let cloudKey = localStorage.getItem('mildcloud-client-id') || '';
+  let activeCloudTrack = null;
+  const soundcloudApi = 'https://api-v2.soundcloud.com';
+  function openDrawer(panel){[searchPanel,wavePanel].forEach(p=>{p.classList.remove('open');p.setAttribute('aria-hidden','true')});panel.classList.add('open');panel.setAttribute('aria-hidden','false')}
+  function closeDrawers(){[searchPanel,wavePanel].forEach(p=>{p.classList.remove('open');p.setAttribute('aria-hidden','true')})}
+  async function findSoundCloudKey(){
+    const pages=['https://soundcloud.com/','https://soundcloud.com/discover','https://m.soundcloud.com/'];
+    const rx=[/client_id[:=]\s*"?([a-zA-Z0-9]{32})/,/clientId"?\s*[:=]\s*"([a-zA-Z0-9]{32})/,/client_id%3D([a-zA-Z0-9]{32})/];
+    const scan=text=>{for(const r of rx){const m=text.match(r);if(m)return m[1]}return ''};
+    for(const page of pages){try{const html=await fetch(page,{cache:'no-store'}).then(r=>r.text());let id=scan(html);if(id)return localStorage.setItem('mildcloud-client-id',id)||id;const scripts=[...html.matchAll(/<script[^>]+src="([^"]+\.js)"/g)].map(m=>m[1]).map(u=>u.startsWith('//')?'https:'+u:u.startsWith('/')?new URL(u,page).href:u).filter(u=>/soundcloud|sndcdn/.test(u)).slice(-8);for(const url of scripts){try{const js=await fetch(url).then(r=>r.text());id=scan(js);if(id){localStorage.setItem('mildcloud-client-id',id);return id}}catch(e){}}}catch(e){}}
+    throw new Error('SoundCloud не отдал client_id.');
+  }
+  async function scGet(path){if(!cloudKey)cloudKey=await findSoundCloudKey();const r=await fetch(soundcloudApi+path+(path.includes('?')?'&':'?')+'client_id='+encodeURIComponent(cloudKey));if((r.status===401||r.status===403)&&cloudKey){localStorage.removeItem('mildcloud-client-id');cloudKey='';return scGet(path)}if(!r.ok)throw new Error('SoundCloud ответил '+r.status);return r.json()}
+  const cloudTrack=t=>({id:t.id,title:t.title||'Untitled',artist:t.user?.username||'Unknown artist',art:(t.artwork_url||t.user?.avatar_url||'').replace('-large','-t300x300'),duration:t.full_duration||t.duration||0,url:t.permalink_url||''});
+  const timeMs=ms=>{const sec=Math.floor((ms||0)/1000);return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0')};
+  function renderCloudResults(list){cloudResults.innerHTML=list.map(t=>`<button class="cloud-result" data-track-id="${t.id}"><span class="cloud-art" style="${t.art?`background-image:url('${t.art}')`:''}"></span><span><span class="cloud-title">${escapeHtml(t.title)}</span><span class="cloud-artist">${escapeHtml(t.artist)}</span></span><span class="cloud-time">${timeMs(t.duration)}</span></button>`).join('')||'<div class="drawer-status">Ничего не нашлось.</div>';cloudResults.querySelectorAll('.cloud-result').forEach((b,i)=>b.addEventListener('click',()=>selectCloudTrack(list[i])))}
+  const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  async function runCloudSearch(){const q=cloudQuery.value.trim();if(!q)return;cloudStatus.textContent='Ищу в SoundCloud…';cloudResults.innerHTML='';try{const data=await scGet('/search/tracks?q='+encodeURIComponent(q)+'&limit=20');const list=(data.collection||[]).map(cloudTrack);cloudStatus.textContent=`SoundCloud · ${list.length} результатов`;renderCloudResults(list)}catch(e){cloudStatus.textContent=e.message+' Можно добавить свой client_id в коде.'}}
+  async function selectCloudTrack(t){
+    activeCloudTrack=t;
+    document.getElementById('trackTitle').textContent=t.title;document.getElementById('trackArtist').textContent=t.artist;document.getElementById('trackAlbum').textContent='SoundCloud';
+    const cover=document.getElementById('trackCover');cover.classList.add('remote-cover');cover.style.backgroundImage=t.art?`url('${t.art.replace('t300x300','t500x500')}')`:'';const svg=cover.querySelector('svg');if(svg)svg.style.display='none';
+    document.documentElement.style.setProperty('--cover-a','#273c68');document.documentElement.style.setProperty('--cover-b','#6e4d89');document.documentElement.style.setProperty('--cover-c','#dc948f');closeDrawers();cloudStatus.textContent='Трек выбран';
+    try{
+      const data=await scGet('/tracks/'+t.id);const trans=data.media?.transcodings||[];
+      const progressive=trans.find(x=>x.format?.protocol==='progressive');
+      if(progressive){let url=progressive.url+(progressive.url.includes('?')?'&':'?')+'client_id='+encodeURIComponent(cloudKey);if(data.track_authorization)url+='&track_authorization='+encodeURIComponent(data.track_authorization);const stream=await fetch(url).then(r=>r.json());if(stream.url){audio.src=stream.url;await audio.play();document.getElementById('playBtn').classList.add('is-playing')}}
+    }catch(e){console.info('Stream unavailable in standalone preview',e.message)}
+  }
+  document.getElementById('searchBtn').addEventListener('click',()=>{openDrawer(searchPanel);cloudQuery.focus()});
+  document.getElementById('cloudSubmit').addEventListener('click',runCloudSearch);cloudQuery.addEventListener('keydown',e=>{if(e.key==='Enter')runCloudSearch()});
+  document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeDrawers));
+  document.querySelector('[data-nav="Wave"]').addEventListener('click',()=>openDrawer(wavePanel));
+  document.querySelectorAll('.wave-style').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.wave-style').forEach(x=>x.classList.remove('active'));b.classList.add('active')}));
+  document.getElementById('startWave').addEventListener('click',async()=>{
+    if(!activeCloudTrack){toast('Сначала выбери трек через SoundCloud search');return}
+    closeDrawers();openDrawer(searchPanel);cloudStatus.textContent='MildWave · похожие треки';cloudResults.innerHTML='<div class="drawer-status">Подбираю соседей по SoundCloud…</div>';
+    try{const data=await scGet('/tracks/'+activeCloudTrack.id+'/related?limit=12');renderCloudResults((data.collection||[]).map(cloudTrack))}catch(e){cloudStatus.textContent='Не удалось загрузить похожие треки'}
+  });
+
+  const seek=document.querySelector('.seek');seek.addEventListener('input',()=>{seek.style.background=`linear-gradient(to right,#ecedff 0 ${seek.value}%,rgba(255,255,255,.18) ${seek.value}% 100%)`});
+</script>
+</body>
+</html>
