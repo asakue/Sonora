@@ -66,29 +66,20 @@ export const HeroPlayer: React.FC = React.memo(() => {
 
   return (
     <div
-      className="glass-panel rounded-none md:rounded-3xl border-x-0 md:border-x px-4 sm:px-7 py-4 sm:py-7 flex flex-col justify-between flex-1 min-h-0 relative overflow-hidden select-none w-full"
+      className="glass-panel rounded-none md:rounded-3xl border-0 md:border md:border-white/12 [box-shadow:none] md:[box-shadow:inset_0_1.5px_0.5px_0_rgba(255,255,255,0.28)] px-4 sm:px-7 pt-4 pb-2 sm:py-7 flex flex-col justify-between flex-1 min-h-0 relative overflow-hidden select-none w-full"
       style={{
-        /* Dynamic liquid glass tint that morphs with album cover colors */
+        /* Frameless liquid glass tint that flows seamlessly across the mobile screen */
         background: `
           radial-gradient(ellipse 95% 65% at 50% 15%, color-mix(in srgb, var(--cover-b, #4338ca) 28%, transparent) 0%, transparent 75%),
           radial-gradient(ellipse 75% 55% at 85% 85%, color-mix(in srgb, var(--cover-c, #ec4899) 20%, transparent) 0%, transparent 70%),
           radial-gradient(ellipse 75% 55% at 15% 85%, color-mix(in srgb, var(--cover-a, #1e1b4b) 24%, transparent) 0%, transparent 70%),
-          linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(14, 17, 26, 0.38) 35%, rgba(9, 11, 17, 0.68) 100%)
+          linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(14, 17, 26, 0.28) 40%, rgba(9, 11, 17, 0.52) 100%)
         `,
         backdropFilter: 'blur(30px) saturate(190%)',
         WebkitBackdropFilter: 'blur(30px) saturate(190%)',
         transition: 'background 0.8s ease',
       }}
     >
-      {/* Mobile top waterfall specular sheen */}
-      <div
-        className="absolute inset-x-0 top-0 h-[1px] md:hidden pointer-events-none z-20"
-        style={{
-          background:
-            'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 25%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.3) 75%, transparent 100%)',
-        }}
-      />
-
       {/* Core display: Cover + Track details */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-center my-auto z-10 min-h-0">
         {/* Cover artwork with waterfall curved glass (clean, zero back shadow) */}

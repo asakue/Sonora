@@ -36,25 +36,15 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = React.memo(({
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 z-40 md:hidden select-none"
+      className="fixed bottom-0 inset-x-0 z-40 md:hidden select-none pointer-events-auto"
       style={{
-        background: 'rgba(12, 14, 20, 0.88)',
-        backdropFilter: 'blur(28px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(28px) saturate(180%)',
-        borderTop: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow:
-          'inset 0 1px 1px 0 rgba(255, 255, 255, 0.25), 0 -10px 30px rgba(0, 0, 0, 0.7)',
+        /* Seamless liquid glass that naturally merges with the main screen */
+        background:
+          'linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(10, 12, 18, 0.35) 40%, rgba(8, 9, 14, 0.65) 100%)',
+        backdropFilter: 'blur(36px) saturate(190%)',
+        WebkitBackdropFilter: 'blur(36px) saturate(190%)',
       }}
     >
-      {/* Top Waterfall specular highlight line */}
-      <div
-        className="absolute inset-x-0 top-0 h-[1px] pointer-events-none"
-        style={{
-          background:
-            'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 30%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0.3) 70%, transparent 100%)',
-        }}
-      />
-
       <div className="grid grid-cols-4 items-center h-16 max-w-lg mx-auto px-2 pb-[env(safe-area-inset-bottom,0px)]">
         {/* 1. Главный экран (Плеер) */}
         <button

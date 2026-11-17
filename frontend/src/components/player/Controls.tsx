@@ -235,7 +235,7 @@ const RemixControl: React.FC = React.memo(() => {
       {/* Flyout Glass Popup with 3D Waterfall Edge & Cover Liquid Glass Tint */}
       {isOpen && (
         <div
-          className="absolute bottom-full left-0 mb-3 w-44 rounded-2xl p-1.5 z-50 select-none animate-in fade-in zoom-in-95 duration-150 overflow-hidden"
+          className="absolute bottom-full right-0 md:right-auto md:left-0 mb-3 w-44 rounded-2xl p-1.5 z-50 select-none animate-in fade-in zoom-in-95 duration-150 overflow-hidden"
           style={{
             backgroundColor: '#07090e',
             background: `

@@ -2,10 +2,7 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-if os.getenv("VERCEL"):
-    DATA_DIR = Path("/tmp/sonora_data")
-else:
-    DATA_DIR = BASE_DIR / "data"
+DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 CLIENT_ID_CACHE_FILE = DATA_DIR / "soundcloud_client_id.json"

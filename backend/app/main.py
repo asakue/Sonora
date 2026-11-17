@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI(
     title="Sonora Audio API",
     description="SoundCloud v2 streaming proxy & MildWave recommendation engine",
-    version="11.1.0",
+    version="1.1.0",
 )
 
 app.add_middleware(

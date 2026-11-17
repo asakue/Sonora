@@ -181,7 +181,7 @@ const MainApp: React.FC = React.memo(() => {
 
       {/* Main app container */}
       <div
-        className="relative z-10 flex-1 h-full max-h-full max-w-[1700px] w-full mx-auto p-0 md:p-4 pb-20 md:pb-4 flex md:gap-4 min-h-0 overflow-hidden"
+        className="relative z-10 flex-1 h-full max-h-full max-w-[1700px] w-full mx-auto p-0 md:p-4 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-4 flex md:gap-4 min-h-0 overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >

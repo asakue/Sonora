@@ -16,8 +16,6 @@ export const MobileLeftDrawer: React.FC<MobileLeftDrawerProps> = React.memo(({
   const touchStartXRef = useRef<number>(0);
   const touchStartYRef = useRef<number>(0);
 
-  if (!isOpen) return null;
-
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartXRef.current = e.touches[0].clientX;
     touchStartYRef.current = e.touches[0].clientY;
@@ -28,31 +26,37 @@ export const MobileLeftDrawer: React.FC<MobileLeftDrawerProps> = React.memo(({
     const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
 
     // Swipe from right to left inside drawer closes it
-    if (deltaX < -50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+    if (deltaX < -40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.1) {
       onClose();
     }
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-start md:hidden select-none"
+      className={`fixed inset-0 z-50 flex justify-start md:hidden select-none transition-[visibility] duration-350 ${
+        isOpen ? 'visible pointer-events-auto' : 'invisible pointer-events-none delay-300'
+      }`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Backdrop */}
+      {/* Backdrop with buttery-smooth fade */}
       <div
-        className="fixed inset-0 bg-black/75 backdrop-blur-sm animate-fade-in cursor-pointer"
+        className={`fixed inset-0 bg-black/75 backdrop-blur-sm cursor-pointer transition-opacity duration-300 ease-out ${
+          isOpen ? 'opacity-100' : 'opacity-0'
+        }`}
         onClick={onClose}
       />
 
-      {/* Sliding Drawer Container */}
+      {/* Sliding Drawer Container with fluid spring physics */}
       <div
-        className="relative w-full max-w-sm h-full flex flex-col shadow-2xl z-10 animate-drawer-left overflow-hidden"
+        className={`relative w-full max-w-sm h-full flex flex-col shadow-2xl z-10 overflow-hidden transform-gpu will-change-transform transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
         style={{
-          background: 'rgba(14, 16, 23, 0.92)',
-          backdropFilter: 'blur(32px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(32px) saturate(180%)',
-          borderRight: '1px solid rgba(255, 255, 255, 0.14)',
+          background: 'rgba(14, 16, 23, 0.94)',
+          backdropFilter: 'blur(36px) saturate(190%)',
+          WebkitBackdropFilter: 'blur(36px) saturate(190%)',
+          borderRight: '1px solid rgba(255, 255, 255, 0.12)',
           boxShadow:
             'inset -1px 0 1px 0 rgba(255, 255, 255, 0.2), 12px 0 36px rgba(0, 0, 0, 0.7)',
         }}
