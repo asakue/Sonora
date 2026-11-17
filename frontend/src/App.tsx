@@ -28,6 +28,7 @@ const MainApp: React.FC = React.memo(() => {
   const [isWaveOpen, setIsWaveOpen] = useState(false);
   const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
+  const [isBottomNavOpen, setIsBottomNavOpen] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
 
   const { currentTrack, setQueue, playTrack } = useAudioPlayer();
@@ -43,6 +44,7 @@ const MainApp: React.FC = React.memo(() => {
   const handleSelectTab = useCallback((tab: NavTab) => {
     setIsLeftDrawerOpen(false);
     setIsRightDrawerOpen(false);
+    setIsBottomNavOpen(false);
     setCurrentTab(tab);
   }, []);
   const handleOpenSearch = useCallback(() => setIsSearchOpen(true), []);
@@ -163,13 +165,26 @@ const MainApp: React.FC = React.memo(() => {
     const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
     const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
 
+    // Horizontal swipe: left/right drawers
     if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
       if (deltaX > 0) {
         setIsLeftDrawerOpen(true);
         setIsRightDrawerOpen(false);
+        setIsBottomNavOpen(false);
       } else {
         setIsRightDrawerOpen(true);
         setIsLeftDrawerOpen(false);
+        setIsBottomNavOpen(false);
+      }
+      return;
+    }
+
+    // Vertical swipe: swipe up -> reveal bottom navigation; swipe down -> hide bottom navigation
+    if (Math.abs(deltaY) > 35 && Math.abs(deltaY) > Math.abs(deltaX) * 1.2) {
+      if (deltaY < 0) {
+        setIsBottomNavOpen(true);
+      } else {
+        setIsBottomNavOpen(false);
       }
     }
   };
@@ -225,7 +240,7 @@ const MainApp: React.FC = React.memo(() => {
 
               {/* Mobile View: ONLY Hero Player (artwork, title, controls) edge-to-edge */}
               <div key="listen-mobile" className="flex md:hidden flex-1 min-h-0 h-full flex-col animate-view-enter overflow-hidden w-full">
-                <HeroPlayer />
+                <HeroPlayer isBottomNavOpen={isBottomNavOpen} />
               </div>
             </>
           )}
@@ -243,7 +258,7 @@ const MainApp: React.FC = React.memo(() => {
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation (Offscreen by default, slides up on swipe up) */}
       <BottomNavigation
         currentTab={currentTab}
         onSelectTab={handleSelectTab}
@@ -252,6 +267,8 @@ const MainApp: React.FC = React.memo(() => {
         onCloseDrawers={handleCloseDrawers}
         isLeftDrawerOpen={isLeftDrawerOpen}
         isRightDrawerOpen={isRightDrawerOpen}
+        isOpen={isBottomNavOpen}
+        onClose={() => setIsBottomNavOpen(false)}
       />
 
       {/* Mobile Drawers (Swipe left/right) */}

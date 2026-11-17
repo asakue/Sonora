@@ -61,12 +61,16 @@ const TimelineScrubber: React.FC<{ disabled: boolean }> = React.memo(({ disabled
   );
 });
 
-export const HeroPlayer: React.FC = React.memo(() => {
+interface HeroPlayerProps {
+  isBottomNavOpen?: boolean;
+}
+
+export const HeroPlayer: React.FC<HeroPlayerProps> = React.memo(({ isBottomNavOpen = false }) => {
   const { currentTrack, isPlaying, errorMessage } = useAudioPlayer();
 
   return (
     <div
-      className="md:glass-panel rounded-none md:rounded-3xl border-0 md:border md:border-white/12 [box-shadow:none] md:[box-shadow:inset_0_1.5px_0.5px_0_rgba(255,255,255,0.28)] px-4 sm:px-7 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] md:pt-7 pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:pb-7 flex flex-col justify-between flex-1 min-h-0 relative overflow-hidden select-none w-full"
+      className="md:glass-panel rounded-none md:rounded-3xl border-0 md:border md:border-white/12 [box-shadow:none] md:[box-shadow:inset_0_1.5px_0.5px_0_rgba(255,255,255,0.28)] px-4 sm:px-7 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] md:pt-7 pb-3 md:pb-7 flex flex-col justify-between flex-1 min-h-0 relative overflow-hidden select-none w-full"
       style={{
         /* Frameless liquid glass surface that extends edge-to-edge from top to bottom */
         background: `
@@ -151,8 +155,13 @@ export const HeroPlayer: React.FC = React.memo(() => {
         </div>
       </div>
 
-      {/* Progress scrubber & Controls */}
-      <div className="z-10 flex flex-col gap-2 sm:gap-2.5 mt-auto pt-2">
+      {/* Progress scrubber & Controls with adaptive fluid shift when bottom nav opens */}
+      <div
+        className="z-10 flex flex-col gap-2 sm:gap-2.5 mt-auto pt-2 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform"
+        style={{
+          transform: isBottomNavOpen ? 'translateY(-4.75rem)' : 'translateY(0)',
+        }}
+      >
         {/* Timeline */}
         <TimelineScrubber disabled={!currentTrack} />
 
