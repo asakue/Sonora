@@ -72,11 +72,12 @@ export const HeroPlayer: React.FC<HeroPlayerProps> = React.memo(({ isBottomNavOp
     <div
       className="md:glass-panel rounded-none md:rounded-3xl border-0 md:border md:border-white/12 [box-shadow:none] md:[box-shadow:inset_0_1.5px_0.5px_0_rgba(255,255,255,0.28)] px-4 sm:px-7 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] md:pt-7 pb-3 md:pb-7 flex flex-col justify-between flex-1 min-h-0 relative overflow-hidden select-none w-full"
       style={{
-        /* Frameless liquid glass surface that extends edge-to-edge from top to bottom */
+        /* Frameless liquid glass surface with complete 4-quadrant gradient harmony (eliminates empty corners) */
         background: `
-          radial-gradient(ellipse 90% 60% at 50% 15%, color-mix(in srgb, var(--cover-b, #4338ca) 22%, transparent) 0%, transparent 75%),
-          radial-gradient(ellipse 70% 50% at 85% 85%, color-mix(in srgb, var(--cover-c, #ec4899) 16%, transparent) 0%, transparent 70%),
-          radial-gradient(ellipse 70% 50% at 15% 85%, color-mix(in srgb, var(--cover-a, #1e1b4b) 22%, transparent) 0%, transparent 70%),
+          radial-gradient(ellipse 75% 55% at 85% 15%, color-mix(in srgb, var(--cover-b, #4338ca) 28%, transparent) 0%, transparent 70%),
+          radial-gradient(ellipse 75% 55% at 15% 15%, color-mix(in srgb, var(--cover-c, #ec4899) 18%, transparent) 0%, transparent 70%),
+          radial-gradient(ellipse 75% 55% at 85% 85%, color-mix(in srgb, var(--cover-c, #ec4899) 18%, transparent) 0%, transparent 70%),
+          radial-gradient(ellipse 75% 55% at 15% 85%, color-mix(in srgb, var(--cover-a, #1e1b4b) 24%, transparent) 0%, transparent 70%),
           linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(12, 15, 24, 0.22) 45%, rgba(6, 8, 14, 0.48) 100%)
         `,
         backdropFilter: 'blur(28px) saturate(190%)',
@@ -85,13 +86,13 @@ export const HeroPlayer: React.FC<HeroPlayerProps> = React.memo(({ isBottomNavOp
       }}
     >
       {/* Core display: Cover + Track details */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-center my-auto z-10 min-h-0">
-        {/* Cover artwork with waterfall curved glass (clean, zero back shadow) */}
-        <div className="md:col-span-5 flex justify-center">
+      <div className="flex flex-col md:grid md:grid-cols-12 gap-3 sm:gap-4 md:gap-8 items-center my-auto z-10 min-h-0 w-full">
+        {/* Cover artwork with waterfall curved glass */}
+        <div className="md:col-span-5 flex justify-center w-full">
           <div className="relative group">
-            {/* Waterfall-Edge Curved Artwork */}
+            {/* Waterfall-Edge Curved Artwork (slightly larger in adaptive version) */}
             <div
-              className="relative w-44 h-44 xs:w-48 xs:h-48 sm:w-56 sm:h-56 md:w-56 md:h-56 lg:w-64 lg:h-64 xl:w-72 xl:h-72 max-h-[34vh] max-w-[34vh] aspect-square rounded-[2rem] overflow-hidden bg-neutral-900 flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.025]"
+              className="relative w-56 h-56 xs:w-64 xs:h-64 sm:w-72 sm:h-72 md:w-56 md:h-56 lg:w-64 lg:h-64 xl:w-72 xl:h-72 max-h-[36vh] max-w-[36vh] aspect-square rounded-[2rem] overflow-hidden bg-neutral-900 flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.025]"
               style={{
                 boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.12)',
               }}
@@ -105,29 +106,40 @@ export const HeroPlayer: React.FC<HeroPlayerProps> = React.memo(({ isBottomNavOp
                 />
               ) : (
                 <div className="flex items-center justify-center text-neutral-400">
-                  <Disc3 size={64} strokeWidth={1} className={isPlaying ? 'animate-spin' : ''} style={{ animationDuration: '6s' }} />
+                  <Disc3 size={68} strokeWidth={1} className={isPlaying ? 'animate-spin' : ''} style={{ animationDuration: '6s' }} />
                 </div>
               )}
+
+              {/* Waterfall Glass 3D Curved Edge Lens */}
+              <div
+                className="absolute inset-0 rounded-[2rem] pointer-events-none"
+                style={{
+                  background:
+                    'radial-gradient(circle at center, transparent 60%, rgba(0, 0, 0, 0.45) 100%)',
+                  boxShadow:
+                    'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.6), inset 1.5px 0 1.5px 0 rgba(255, 255, 255, 0.2), inset -1.5px 0 1.5px 0 rgba(0, 0, 0, 0.35)',
+                }}
+              />
             </div>
           </div>
         </div>
 
-        {/* Track info with smooth enter transition on track change */}
-        <div className="md:col-span-7 flex flex-col justify-center min-w-0 items-center md:items-start text-center md:text-left">
+        {/* Track info positioned aesthetically under the cover in adaptive mode */}
+        <div className="md:col-span-7 flex flex-col justify-center min-w-0 items-center md:items-start text-center md:text-left w-full max-w-md mx-auto md:max-w-none">
           {currentTrack ? (
-            <div key={currentTrack.id} className="animate-track-reveal w-full">
-              <h1 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl xl:text-5xl font-bold tracking-tight text-white mb-1.5 sm:mb-2 leading-tight line-clamp-2">
+            <div key={currentTrack.id} className="animate-track-reveal w-full px-2 md:px-0">
+              <h1 className="text-lg xs:text-xl sm:text-2xl md:text-4xl xl:text-5xl font-bold tracking-tight text-white mb-1 leading-tight line-clamp-1 md:line-clamp-2">
                 {currentTrack.title}
               </h1>
 
-              <p className="text-xs xs:text-sm sm:text-base md:text-lg text-neutral-300 font-medium truncate max-w-full">
+              <p className="text-xs xs:text-sm sm:text-base md:text-lg text-neutral-300 font-medium truncate max-w-full mt-0.5">
                 {currentTrack.artist}
               </p>
             </div>
           ) : null}
 
           {errorMessage && (
-            <div className="mt-3 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-lg">
+            <div className="mt-2 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-lg">
               {errorMessage}
             </div>
           )}
