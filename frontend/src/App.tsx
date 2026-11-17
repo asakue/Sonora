@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AmbientBackdrop } from './components/layout/AmbientBackdrop';
+import { BottomNavigation } from './components/layout/BottomNavigation';
+import { MobileLeftDrawer } from './components/layout/MobileLeftDrawer';
+import { MobileRightDrawer } from './components/layout/MobileRightDrawer';
 import { RecentlyPlayedPanel } from './components/layout/RecentlyPlayedPanel';
 import { Sidebar, type NavTab } from './components/layout/Sidebar';
 import { Topbar } from './components/layout/Topbar';
@@ -23,6 +26,8 @@ const MainApp: React.FC = React.memo(() => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isWaveOpen, setIsWaveOpen] = useState(false);
+  const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);
+  const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
 
   const { currentTrack, setQueue, playTrack } = useAudioPlayer();
@@ -30,13 +35,24 @@ const MainApp: React.FC = React.memo(() => {
 
   const activeTrackRef = useRef<Track | null>(null);
   const activeStartTimeRef = useRef<number>(0);
+  const touchStartXRef = useRef<number>(0);
+  const touchStartYRef = useRef<number>(0);
+  const touchIsInteractiveRef = useRef<boolean>(false);
 
   const handleToggleSidebar = useCallback(() => setIsSidebarCollapsed((prev) => !prev), []);
-  const handleSelectTab = useCallback((tab: NavTab) => setCurrentTab(tab), []);
+  const handleSelectTab = useCallback((tab: NavTab) => {
+    setIsLeftDrawerOpen(false);
+    setIsRightDrawerOpen(false);
+    setCurrentTab(tab);
+  }, []);
   const handleOpenSearch = useCallback(() => setIsSearchOpen(true), []);
   const handleCloseSearch = useCallback(() => setIsSearchOpen(false), []);
   const handleOpenWave = useCallback(() => setIsWaveOpen(true), []);
   const handleCloseWave = useCallback(() => setIsWaveOpen(false), []);
+  const handleCloseDrawers = useCallback(() => {
+    setIsLeftDrawerOpen(false);
+    setIsRightDrawerOpen(false);
+  }, []);
 
   // Check for GitHub Release updates once on startup
   useEffect(() => {
@@ -122,13 +138,53 @@ const MainApp: React.FC = React.memo(() => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Swipe detection: swipe right (left-to-right) -> Left drawer (Visualizer/Mixer/Queue/Recent)
+  //                  swipe left (right-to-left) -> Right drawer (History & future sections)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const target = e.target as HTMLElement | null;
+    if (
+      target &&
+      (target.tagName === 'INPUT' ||
+        target.tagName === 'BUTTON' ||
+        target.closest('input') ||
+        target.closest('button') ||
+        target.closest('.no-swipe'))
+    ) {
+      touchIsInteractiveRef.current = true;
+      return;
+    }
+    touchIsInteractiveRef.current = false;
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchIsInteractiveRef.current) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
+
+    if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
+      if (deltaX > 0) {
+        setIsLeftDrawerOpen(true);
+        setIsRightDrawerOpen(false);
+      } else {
+        setIsRightDrawerOpen(true);
+        setIsLeftDrawerOpen(false);
+      }
+    }
+  };
+
   return (
     <div className="relative h-screen max-h-screen overflow-hidden bg-[#0a0b0e] text-[#ededf0] selection:bg-indigo-500/30 selection:text-white flex flex-col">
       {/* Dynamic ambient backdrop */}
       <AmbientBackdrop />
 
       {/* Main app container */}
-      <div className="relative z-10 flex-1 h-full max-h-full max-w-[1700px] w-full mx-auto p-3 sm:p-4 flex gap-4 min-h-0 overflow-hidden">
+      <div
+        className="relative z-10 flex-1 h-full max-h-full max-w-[1700px] w-full mx-auto p-0 md:p-4 pb-20 md:pb-4 flex md:gap-4 min-h-0 overflow-hidden"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* Sidebar */}
         <Sidebar
           currentTab={currentTab}
@@ -140,42 +196,73 @@ const MainApp: React.FC = React.memo(() => {
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden">
-          <Topbar
-            currentTab={currentTab}
-            onOpenSearch={handleOpenSearch}
-            onOpenWave={handleOpenWave}
-          />
+        <main className="flex-1 flex flex-col min-w-0 min-h-0 h-full overflow-hidden w-full">
+          <div className="hidden md:block">
+            <Topbar
+              currentTab={currentTab}
+              onOpenSearch={handleOpenSearch}
+              onOpenWave={handleOpenWave}
+            />
+          </div>
 
           {/* Views */}
           {currentTab === 'listen' && (
-            <div key="listen" className="flex-1 min-h-0 h-full grid grid-cols-1 xl:grid-cols-12 gap-4 animate-view-enter overflow-hidden">
-              {/* Left Column (8 cols): Hero Player (Largest Section!) + Recently Played */}
-              <div className="xl:col-span-8 flex flex-col gap-4 min-h-0 h-full overflow-hidden">
-                <HeroPlayer />
-                <RecentlyPlayedPanel />
+            <>
+              {/* Desktop 2-column view */}
+              <div key="listen-desktop" className="hidden md:grid flex-1 min-h-0 h-full grid-cols-1 xl:grid-cols-12 gap-4 animate-view-enter overflow-hidden">
+                {/* Left Column (8 cols): Hero Player (Largest Section!) + Recently Played */}
+                <div className="xl:col-span-8 flex flex-col gap-4 min-h-0 h-full overflow-hidden">
+                  <HeroPlayer />
+                  <RecentlyPlayedPanel />
+                </div>
+
+                {/* Right Column (4 cols): Live Spectrum Visualizer + Up Next Queue */}
+                <div className="xl:col-span-4 flex flex-col gap-4 min-h-0 h-full overflow-hidden">
+                  <ListeningDetailsPanel />
+                  <QueuePanel />
+                </div>
               </div>
 
-              {/* Right Column (4 cols): Live Spectrum Visualizer + Up Next Queue */}
-              <div className="xl:col-span-4 flex flex-col gap-4 min-h-0 h-full overflow-hidden">
-                <ListeningDetailsPanel />
-                <QueuePanel />
+              {/* Mobile View: ONLY Hero Player (artwork, title, controls) edge-to-edge */}
+              <div key="listen-mobile" className="flex md:hidden flex-1 min-h-0 h-full flex-col animate-view-enter overflow-hidden w-full">
+                <HeroPlayer />
               </div>
-            </div>
+            </>
           )}
 
           {currentTab === 'liked' && (
-            <div key="liked" className="flex-1 min-h-0 h-full flex flex-col animate-view-enter overflow-hidden">
+            <div key="liked" className="flex-1 min-h-0 h-full flex flex-col animate-view-enter overflow-hidden p-3 md:p-0">
               <LikedSongsView />
             </div>
           )}
           {currentTab === 'history' && (
-            <div key="history" className="flex-1 min-h-0 h-full flex flex-col animate-view-enter overflow-hidden">
+            <div key="history" className="flex-1 min-h-0 h-full flex flex-col animate-view-enter overflow-hidden p-3 md:p-0">
               <HistoryView />
             </div>
           )}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNavigation
+        currentTab={currentTab}
+        onSelectTab={handleSelectTab}
+        onOpenSearch={handleOpenSearch}
+        onOpenWave={handleOpenWave}
+        onCloseDrawers={handleCloseDrawers}
+        isLeftDrawerOpen={isLeftDrawerOpen}
+        isRightDrawerOpen={isRightDrawerOpen}
+      />
+
+      {/* Mobile Drawers (Swipe left/right) */}
+      <MobileLeftDrawer
+        isOpen={isLeftDrawerOpen}
+        onClose={() => setIsLeftDrawerOpen(false)}
+      />
+      <MobileRightDrawer
+        isOpen={isRightDrawerOpen}
+        onClose={() => setIsRightDrawerOpen(false)}
+      />
 
       {/* Drawers & Modals */}
       <SearchDrawer isOpen={isSearchOpen} onClose={handleCloseSearch} />

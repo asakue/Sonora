@@ -91,10 +91,10 @@ export const AmbientBackdrop: React.FC = React.memo(() => {
         width={96}
         height={96}
         className={`absolute inset-0 w-full h-full object-cover scale-125 transition-opacity duration-1200 ease-in-out ${
-          hasArtwork && activeCanvas === 'A' ? 'opacity-65' : 'opacity-0'
+          hasArtwork && activeCanvas === 'A' ? 'opacity-80' : 'opacity-0'
         }`}
         style={{
-          filter: 'saturate(2.0) brightness(0.85)',
+          filter: 'saturate(2.2) brightness(0.95)',
           transform: 'translateZ(0) scale(1.3)',
         }}
       />
@@ -103,10 +103,10 @@ export const AmbientBackdrop: React.FC = React.memo(() => {
         width={96}
         height={96}
         className={`absolute inset-0 w-full h-full object-cover scale-125 transition-opacity duration-1200 ease-in-out ${
-          hasArtwork && activeCanvas === 'B' ? 'opacity-65' : 'opacity-0'
+          hasArtwork && activeCanvas === 'B' ? 'opacity-80' : 'opacity-0'
         }`}
         style={{
-          filter: 'saturate(2.0) brightness(0.85)',
+          filter: 'saturate(2.2) brightness(0.95)',
           transform: 'translateZ(0) scale(1.3)',
         }}
       />

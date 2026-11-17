@@ -300,96 +300,193 @@ export const Controls: React.FC = () => {
   const liked = currentTrack ? isLiked(currentTrack.id) : false;
 
   return (
-    <div className="flex items-center justify-between w-full px-1">
-      {/* Left utility: Like, Shuffle & Remix Magic Wand */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => currentTrack && toggleLike(currentTrack)}
-          disabled={!currentTrack}
-          aria-label={liked ? 'Удалить из любимых' : 'Добавить в любимые'}
-          className={`p-2.5 rounded-full btn-spring cursor-pointer ${
-            liked
-              ? 'text-rose-400 bg-rose-500/10 hover:bg-rose-500/20'
-              : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
-          } disabled:opacity-40 disabled:pointer-events-none`}
-        >
-          <Heart
-            size={18}
-            strokeWidth={1.5}
-            fill={liked ? 'currentColor' : 'none'}
-          />
-        </button>
+    <div className="w-full">
+      {/* Desktop Controls (Single Wide Row) */}
+      <div className="hidden md:flex items-center justify-between w-full px-1">
+        {/* Left utility: Like, Shuffle & Remix Magic Wand */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => currentTrack && toggleLike(currentTrack)}
+            disabled={!currentTrack}
+            aria-label={liked ? 'Удалить из любимых' : 'Добавить в любимые'}
+            className={`p-2.5 rounded-full btn-spring cursor-pointer ${
+              liked
+                ? 'text-rose-400 bg-rose-500/10 hover:bg-rose-500/20'
+                : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
+            } disabled:opacity-40 disabled:pointer-events-none`}
+          >
+            <Heart
+              size={18}
+              strokeWidth={1.5}
+              fill={liked ? 'currentColor' : 'none'}
+            />
+          </button>
 
-        <button
-          onClick={toggleShuffle}
-          aria-label="Случайный порядок"
-          className={`p-2.5 rounded-full btn-spring cursor-pointer ${
-            isShuffle
-              ? 'text-indigo-300 bg-indigo-500/15'
-              : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
-          }`}
-        >
-          <Shuffle size={18} strokeWidth={1.5} />
-        </button>
+          <button
+            onClick={toggleShuffle}
+            aria-label="Случайный порядок"
+            className={`p-2.5 rounded-full btn-spring cursor-pointer ${
+              isShuffle
+                ? 'text-indigo-300 bg-indigo-500/15'
+                : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
+            }`}
+          >
+            <Shuffle size={18} strokeWidth={1.5} />
+          </button>
 
-        {/* Live Remix Magic Wand */}
-        <RemixControl />
+          {/* Live Remix Magic Wand */}
+          <RemixControl />
+        </div>
+
+        {/* Center transport controls: Prev, Play/Pause, Next */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={prevTrack}
+            aria-label="Предыдущий трек"
+            className="p-2.5 rounded-full btn-spring text-neutral-300 hover:text-white hover:bg-white/8 cursor-pointer"
+          >
+            <SkipBack size={20} strokeWidth={1.5} />
+          </button>
+
+          <button
+            onClick={togglePlay}
+            disabled={!currentTrack}
+            aria-label={isPlaying ? 'Пауза' : 'Воспроизвести'}
+            className="w-13 h-13 rounded-full bg-white text-neutral-900 flex items-center justify-center shadow-lg shadow-black/40 hover:scale-106 active:scale-94 transition-transform duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+          >
+            {isLoading ? (
+              <Loader2 size={22} strokeWidth={2} className="animate-spin text-neutral-800" />
+            ) : isPlaying ? (
+              <Pause size={22} strokeWidth={2} fill="currentColor" />
+            ) : (
+              <Play size={22} strokeWidth={2} fill="currentColor" className="ml-0.5" />
+            )}
+          </button>
+
+          <button
+            onClick={nextTrack}
+            aria-label="Следующий трек"
+            className="p-2.5 rounded-full btn-spring text-neutral-300 hover:text-white hover:bg-white/8 cursor-pointer"
+          >
+            <SkipForward size={20} strokeWidth={1.5} />
+          </button>
+        </div>
+
+        {/* Right utility: Repeat & Atmospheric Liquid Glass Volume */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleRepeat}
+            aria-label="Режим повтора"
+            className={`p-2.5 rounded-full btn-spring cursor-pointer ${
+              repeatMode !== 'off'
+                ? 'text-indigo-300 bg-indigo-500/15'
+                : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
+            }`}
+          >
+            {repeatMode === 'one' ? (
+              <Repeat1 size={18} strokeWidth={1.5} />
+            ) : (
+              <Repeat size={18} strokeWidth={1.5} />
+            )}
+          </button>
+
+          {/* Liquid Glass Volume Control Capsule */}
+          <AtmosphericVolumeControl />
+        </div>
       </div>
 
-      {/* Center transport controls: Prev, Play/Pause, Next */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={prevTrack}
-          aria-label="Предыдущий трек"
-          className="p-2.5 rounded-full btn-spring text-neutral-300 hover:text-white hover:bg-white/8 cursor-pointer"
-        >
-          <SkipBack size={20} strokeWidth={1.5} />
-        </button>
+      {/* Mobile Controls */}
+      <div className="flex md:hidden flex-col gap-3 w-full px-1">
+        {/* Row 1: Like, Prev, Play/Pause (center), Next, Remix */}
+        <div className="flex items-center justify-between w-full max-w-sm mx-auto px-1 sm:px-3">
+          {/* Слева: кнопка лайка */}
+          <button
+            onClick={() => currentTrack && toggleLike(currentTrack)}
+            disabled={!currentTrack}
+            aria-label={liked ? 'Удалить из любимых' : 'Добавить в любимые'}
+            className={`p-2.5 rounded-full btn-spring cursor-pointer transition-colors ${
+              liked
+                ? 'text-rose-400 bg-rose-500/15'
+                : 'text-neutral-400 hover:text-neutral-200 bg-white/4'
+            } disabled:opacity-40 disabled:pointer-events-none`}
+          >
+            <Heart
+              size={20}
+              strokeWidth={1.75}
+              fill={liked ? 'currentColor' : 'none'}
+            />
+          </button>
 
-        <button
-          onClick={togglePlay}
-          disabled={!currentTrack}
-          aria-label={isPlaying ? 'Пауза' : 'Воспроизвести'}
-          className="w-13 h-13 rounded-full bg-white text-neutral-900 flex items-center justify-center shadow-lg shadow-black/40 hover:scale-106 active:scale-94 transition-transform duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-        >
-          {isLoading ? (
-            <Loader2 size={22} strokeWidth={2} className="animate-spin text-neutral-800" />
-          ) : isPlaying ? (
-            <Pause size={22} strokeWidth={2} fill="currentColor" />
-          ) : (
-            <Play size={22} strokeWidth={2} fill="currentColor" className="ml-0.5" />
-          )}
-        </button>
+          {/* Предыдущий (туда) */}
+          <button
+            onClick={prevTrack}
+            aria-label="Предыдущий трек"
+            className="p-2.5 rounded-full btn-spring text-neutral-300 active:scale-90 hover:text-white cursor-pointer"
+          >
+            <SkipBack size={24} strokeWidth={1.75} />
+          </button>
 
-        <button
-          onClick={nextTrack}
-          aria-label="Следующий трек"
-          className="p-2.5 rounded-full btn-spring text-neutral-300 hover:text-white hover:bg-white/8 cursor-pointer"
-        >
-          <SkipForward size={20} strokeWidth={1.5} />
-        </button>
-      </div>
+          {/* Посередине: Стоп / Старт */}
+          <button
+            onClick={togglePlay}
+            disabled={!currentTrack}
+            aria-label={isPlaying ? 'Пауза' : 'Воспроизвести'}
+            className="w-14 h-14 rounded-full bg-white text-neutral-900 flex items-center justify-center shadow-lg shadow-black/50 active:scale-92 transition-transform duration-200 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+          >
+            {isLoading ? (
+              <Loader2 size={24} strokeWidth={2.2} className="animate-spin text-neutral-800" />
+            ) : isPlaying ? (
+              <Pause size={24} strokeWidth={2.2} fill="currentColor" />
+            ) : (
+              <Play size={24} strokeWidth={2.2} fill="currentColor" className="ml-0.5" />
+            )}
+          </button>
 
-      {/* Right utility: Repeat & Atmospheric Liquid Glass Volume */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={toggleRepeat}
-          aria-label="Режим повтора"
-          className={`p-2.5 rounded-full btn-spring cursor-pointer ${
-            repeatMode !== 'off'
-              ? 'text-indigo-300 bg-indigo-500/15'
-              : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/5'
-          }`}
-        >
-          {repeatMode === 'one' ? (
-            <Repeat1 size={18} strokeWidth={1.5} />
-          ) : (
-            <Repeat size={18} strokeWidth={1.5} />
-          )}
-        </button>
+          {/* Следующий (сюда) */}
+          <button
+            onClick={nextTrack}
+            aria-label="Следующий трек"
+            className="p-2.5 rounded-full btn-spring text-neutral-300 active:scale-90 hover:text-white cursor-pointer"
+          >
+            <SkipForward size={24} strokeWidth={1.75} />
+          </button>
 
-        {/* Liquid Glass Volume Control Capsule */}
-        <AtmosphericVolumeControl />
+          {/* Справа: кнопка ремиксов */}
+          <RemixControl />
+        </div>
+
+        {/* Row 2: Ниже кнопки петли и перемешивания */}
+        <div className="flex items-center justify-between w-full max-w-[210px] xs:max-w-[230px] mx-auto px-2 pt-0.5">
+          {/* Перемешивание */}
+          <button
+            onClick={toggleShuffle}
+            aria-label="Случайный порядок"
+            className={`p-2.5 rounded-full btn-spring cursor-pointer transition-colors ${
+              isShuffle
+                ? 'text-indigo-300 bg-indigo-500/18'
+                : 'text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            <Shuffle size={20} strokeWidth={1.75} />
+          </button>
+
+          {/* Петля (повтор) */}
+          <button
+            onClick={toggleRepeat}
+            aria-label="Режим повтора"
+            className={`p-2.5 rounded-full btn-spring cursor-pointer transition-colors ${
+              repeatMode !== 'off'
+                ? 'text-indigo-300 bg-indigo-500/18'
+                : 'text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            {repeatMode === 'one' ? (
+              <Repeat1 size={20} strokeWidth={1.75} />
+            ) : (
+              <Repeat size={20} strokeWidth={1.75} />
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

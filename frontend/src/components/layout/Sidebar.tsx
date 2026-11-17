@@ -43,7 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({
   return (
     <aside
       style={{ transform: 'translateZ(0)' }}
-      className={`glass-panel rounded-3xl p-3 sm:p-4 flex flex-col h-full min-h-0 transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[width] flex-shrink-0 select-none overflow-hidden ${
+      className={`hidden md:flex glass-panel rounded-3xl p-3 sm:p-4 flex-col h-full min-h-0 transition-[width] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[width] flex-shrink-0 select-none overflow-hidden ${
         isCollapsed ? 'w-20' : 'w-64'
       }`}
     >

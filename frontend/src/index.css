@@ -164,7 +164,7 @@ html, body, #root {
   animation: track-reveal 0.38s var(--ease-spring) both;
 }
 
-/* Drawer slide-in animation */
+/* Drawer slide-in animation (from right) */
 @keyframes drawer-slide-in {
   from {
     transform: translate3d(100%, 0, 0);
@@ -177,6 +177,21 @@ html, body, #root {
 }
 .animate-drawer-in {
   animation: drawer-slide-in 0.36s var(--ease-spring) both;
+}
+
+/* Drawer slide-in animation (from left) */
+@keyframes drawer-slide-left {
+  from {
+    transform: translate3d(-100%, 0, 0);
+    opacity: 0.6;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+.animate-drawer-left {
+  animation: drawer-slide-left 0.36s var(--ease-spring) both;
 }
 
 /* Modal / Backdrop fade-in animation */

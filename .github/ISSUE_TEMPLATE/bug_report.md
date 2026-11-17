@@ -28,3 +28,4 @@ A clear and concise description of what actually happened.
 
 ## Additional Context
 Add any other context, logs from `sonora_desktop.log`, or screenshots here.
+

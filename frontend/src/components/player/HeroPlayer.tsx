@@ -65,15 +65,38 @@ export const HeroPlayer: React.FC = React.memo(() => {
   const { currentTrack, isPlaying, errorMessage } = useAudioPlayer();
 
   return (
-    <div className="glass-panel rounded-3xl p-5 sm:p-7 flex flex-col justify-between flex-1 min-h-0 relative overflow-hidden">
+    <div
+      className="glass-panel rounded-none md:rounded-3xl border-x-0 md:border-x px-4 sm:px-7 py-4 sm:py-7 flex flex-col justify-between flex-1 min-h-0 relative overflow-hidden select-none w-full"
+      style={{
+        /* Dynamic liquid glass tint that morphs with album cover colors */
+        background: `
+          radial-gradient(ellipse 95% 65% at 50% 15%, color-mix(in srgb, var(--cover-b, #4338ca) 28%, transparent) 0%, transparent 75%),
+          radial-gradient(ellipse 75% 55% at 85% 85%, color-mix(in srgb, var(--cover-c, #ec4899) 20%, transparent) 0%, transparent 70%),
+          radial-gradient(ellipse 75% 55% at 15% 85%, color-mix(in srgb, var(--cover-a, #1e1b4b) 24%, transparent) 0%, transparent 70%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(14, 17, 26, 0.38) 35%, rgba(9, 11, 17, 0.68) 100%)
+        `,
+        backdropFilter: 'blur(30px) saturate(190%)',
+        WebkitBackdropFilter: 'blur(30px) saturate(190%)',
+        transition: 'background 0.8s ease',
+      }}
+    >
+      {/* Mobile top waterfall specular sheen */}
+      <div
+        className="absolute inset-x-0 top-0 h-[1px] md:hidden pointer-events-none z-20"
+        style={{
+          background:
+            'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 25%, rgba(255, 255, 255, 0.6) 50%, rgba(255, 255, 255, 0.3) 75%, transparent 100%)',
+        }}
+      />
+
       {/* Core display: Cover + Track details */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 items-center my-auto z-10 min-h-0">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-center my-auto z-10 min-h-0">
         {/* Cover artwork with waterfall curved glass (clean, zero back shadow) */}
         <div className="md:col-span-5 flex justify-center">
           <div className="relative group">
             {/* Waterfall-Edge Curved Artwork */}
             <div
-              className="relative w-44 h-44 sm:w-52 sm:h-52 md:w-56 md:h-56 lg:w-64 lg:h-64 xl:w-72 xl:h-72 max-h-[38vh] max-w-[38vh] aspect-square rounded-[2rem] overflow-hidden bg-neutral-900 flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.025]"
+              className="relative w-44 h-44 xs:w-48 xs:h-48 sm:w-56 sm:h-56 md:w-56 md:h-56 lg:w-64 lg:h-64 xl:w-72 xl:h-72 max-h-[34vh] max-w-[34vh] aspect-square rounded-[2rem] overflow-hidden bg-neutral-900 flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.025]"
               style={{
                 boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.12)',
               }}
@@ -107,23 +130,23 @@ export const HeroPlayer: React.FC = React.memo(() => {
         </div>
 
         {/* Track info with smooth enter transition on track change */}
-        <div className="md:col-span-7 flex flex-col justify-center min-w-0">
+        <div className="md:col-span-7 flex flex-col justify-center min-w-0 items-center md:items-start text-center md:text-left">
           {currentTrack ? (
-            <div key={currentTrack.id} className="animate-track-reveal">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl xl:text-5xl font-bold tracking-tight text-white mb-2 leading-tight line-clamp-2">
+            <div key={currentTrack.id} className="animate-track-reveal w-full">
+              <h1 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl xl:text-5xl font-bold tracking-tight text-white mb-1.5 sm:mb-2 leading-tight line-clamp-2">
                 {currentTrack.title}
               </h1>
 
-              <p className="text-sm sm:text-base md:text-lg text-neutral-300 font-medium truncate">
+              <p className="text-xs xs:text-sm sm:text-base md:text-lg text-neutral-300 font-medium truncate max-w-full">
                 {currentTrack.artist}
               </p>
             </div>
           ) : (
-            <div className="py-6 animate-track-reveal">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-300 mb-2">
+            <div className="py-4 sm:py-6 animate-track-reveal">
+              <h2 className="text-xl sm:text-3xl md:text-4xl font-bold text-neutral-300 mb-2">
                 Музыкальный плеер
               </h2>
-              <p className="text-neutral-400 text-sm max-w-md">
+              <p className="text-neutral-400 text-xs sm:text-sm max-w-md">
                 Выберите трек через поиск SoundCloud или запустите волну MildWave, чтобы наполнить пространство звуком.
               </p>
             </div>
@@ -138,7 +161,7 @@ export const HeroPlayer: React.FC = React.memo(() => {
       </div>
 
       {/* Progress scrubber & Controls */}
-      <div className="z-10 flex flex-col gap-2.5 mt-auto pt-2">
+      <div className="z-10 flex flex-col gap-2 sm:gap-2.5 mt-auto pt-2">
         {/* Timeline */}
         <TimelineScrubber disabled={!currentTrack} />
 

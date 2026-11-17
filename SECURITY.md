@@ -32,3 +32,4 @@ We take the security of Sonora seriously. If you discover a vulnerability or pot
 - **Resolution and Patch Release**: As soon as a verified remediation is prepared and validated.
 
 Public disclosure will occur only after a patched release is published or by mutual agreement with the reporter.
+

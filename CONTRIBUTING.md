@@ -115,3 +115,4 @@ To start both the backend server and frontend development environment:
 - Fill out the provided Pull Request template completely.
 - Verify that both the frontend build and backend tests pass locally.
 - Keep changes clean, without unnecessary dependencies or commented-out code.
+

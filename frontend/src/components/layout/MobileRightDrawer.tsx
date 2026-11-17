@@ -1,0 +1,81 @@
+import React, { useRef } from 'react';
+import { X } from 'lucide-react';
+import { HistoryView } from '../views/HistoryView';
+
+interface MobileRightDrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const MobileRightDrawer: React.FC<MobileRightDrawerProps> = React.memo(({
+  isOpen,
+  onClose,
+}) => {
+  const touchStartXRef = useRef<number>(0);
+  const touchStartYRef = useRef<number>(0);
+
+  if (!isOpen) return null;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
+
+    // Swipe from left to right inside drawer closes it
+    if (deltaX > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+      onClose();
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex justify-end md:hidden select-none"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/75 backdrop-blur-sm animate-fade-in cursor-pointer"
+        onClick={onClose}
+      />
+
+      {/* Sliding Drawer Container */}
+      <div
+        className="relative w-full max-w-sm h-full flex flex-col shadow-2xl z-10 animate-drawer-in overflow-hidden"
+        style={{
+          background: 'rgba(14, 16, 23, 0.92)',
+          backdropFilter: 'blur(32px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+          borderLeft: '1px solid rgba(255, 255, 255, 0.14)',
+          boxShadow:
+            'inset 1px 0 1px 0 rgba(255, 255, 255, 0.2), -12px 0 36px rgba(0, 0, 0, 0.7)',
+        }}
+      >
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-white/8 flex items-center justify-between flex-shrink-0">
+          <div>
+            <h2 className="text-base font-bold text-white tracking-tight">История и разделы</h2>
+            <p className="text-[11px] text-neutral-400 font-mono">Прослушанные треки</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 btn-spring cursor-pointer transition-colors"
+            title="Закрыть"
+          >
+            <X size={18} strokeWidth={1.5} />
+          </button>
+        </div>
+
+        {/* Drawer Scrollable Content */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col no-scrollbar pb-20">
+          <HistoryView />
+        </div>
+      </div>
+    </div>
+  );
+});
+

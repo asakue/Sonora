@@ -7,7 +7,7 @@ export interface UpdateInfo {
   tagName: string;
 }
 
-const CURRENT_APP_VERSION = '1.0.0';
+const CURRENT_APP_VERSION = '11.1.0';
 const GITHUB_REPO = 'asakue/Sonora';
 const SEEN_UPDATE_KEY = 'sonora_seen_update_release';
 
