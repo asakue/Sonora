@@ -54,10 +54,10 @@ export const MobileLeftDrawer: React.FC<MobileLeftDrawerProps> = React.memo(({
           background: `
             radial-gradient(ellipse 90% 50% at 50% 0%, color-mix(in srgb, var(--cover-b, #6366f1) 24%, transparent) 0%, transparent 70%),
             radial-gradient(ellipse 80% 60% at 50% 100%, color-mix(in srgb, var(--cover-a, #1e1b4b) 28%, transparent) 0%, transparent 70%),
-            linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(14, 16, 25, 0.45) 40%, rgba(7, 9, 14, 0.68) 100%)
+            linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(14, 16, 25, 0.65) 40%, rgba(7, 9, 14, 0.85) 100%)
           `,
-          backdropFilter: 'blur(32px) saturate(190%)',
-          WebkitBackdropFilter: 'blur(32px) saturate(190%)',
+          backdropFilter: 'blur(16px) saturate(160%)',
+          WebkitBackdropFilter: 'blur(16px) saturate(160%)',
           borderRight: '1px solid rgba(255, 255, 255, 0.12)',
           boxShadow:
             'inset -1px 0 1px 0 rgba(255, 255, 255, 0.2), 16px 0 40px rgba(0, 0, 0, 0.65)',

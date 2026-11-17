@@ -1,8 +1,8 @@
 import type { Track } from '../types/music';
 import type { TrackListeningStats } from '../types/userProfile';
 import { selectOptimalSeeds } from './preferenceEngine';
+import { getApiBase } from '../config';
 
-const API_BASE = 'http://127.0.0.1:8000';
 export const QUEUE_STORAGE_KEY = 'sonora_saved_queue_v1';
 export const CURRENT_TRACK_STORAGE_KEY = 'sonora_saved_track_v1';
 
@@ -89,7 +89,7 @@ export async function buildPersonalizedQueue(
   // 3. Query Backend MildWave Recommendation Engine if we have seeds
   if (seedIds.length > 0) {
     try {
-      const res = await fetch(`${API_BASE}/api/mildwave/recommend`, {
+      const res = await fetch(`${getApiBase()}/api/mildwave/recommend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -114,7 +114,7 @@ export async function buildPersonalizedQueue(
     // If MildWave returned few tracks, fetch related tracks for the primary anchor directly
     if (recommendations.length < 5 && primaryAnchor) {
       try {
-        const relRes = await fetch(`${API_BASE}/api/tracks/${primaryAnchor.id}/related?limit=10`);
+        const relRes = await fetch(`${getApiBase()}/api/tracks/${primaryAnchor.id}/related?limit=10`);
         if (relRes.ok) {
           const relData = await relRes.json();
           if (relData.tracks && Array.isArray(relData.tracks)) {
@@ -129,7 +129,7 @@ export async function buildPersonalizedQueue(
       const artistQuery = favoriteArtists[0] || primaryAnchor?.artist;
       if (artistQuery) {
         try {
-          const searchRes = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(artistQuery)}&limit=10`);
+          const searchRes = await fetch(`${getApiBase()}/api/search?q=${encodeURIComponent(artistQuery)}&limit=10`);
           if (searchRes.ok) {
             const searchData = await searchRes.json();
             if (searchData.tracks) {
@@ -146,7 +146,7 @@ export async function buildPersonalizedQueue(
     try {
       const starterQueries = ['Пошлая Молли', 'кис кис', 'дора', 'alternative rock'];
       const q = starterQueries[Math.floor(Math.random() * starterQueries.length)];
-      const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(q)}&limit=10`);
+      const res = await fetch(`${getApiBase()}/api/search?q=${encodeURIComponent(q)}&limit=10`);
       if (res.ok) {
         const data = await res.json();
         if (data.tracks) {

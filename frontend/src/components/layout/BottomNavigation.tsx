@@ -54,8 +54,8 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = React.memo(({
 
   return (
     <nav
-      className={`fixed bottom-0 inset-x-0 z-40 md:hidden select-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu ${
-        isOpen ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-full opacity-0 pointer-events-none'
+      className={`fixed bottom-0 inset-x-0 z-40 md:hidden select-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu ${
+        isOpen ? 'translate-y-0 pointer-events-auto' : 'translate-y-full pointer-events-none'
       }`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
@@ -65,8 +65,8 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = React.memo(({
           radial-gradient(ellipse 90% 60% at 50% 100%, color-mix(in srgb, var(--cover-b, #6366f1) 22%, transparent) 0%, transparent 75%),
           linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(14, 17, 26, 0.72) 35%, rgba(6, 8, 12, 0.92) 100%)
         `,
-        backdropFilter: 'blur(36px) saturate(190%)',
-        WebkitBackdropFilter: 'blur(36px) saturate(190%)',
+        backdropFilter: 'blur(18px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(18px) saturate(160%)',
         borderTop: '1px solid rgba(255, 255, 255, 0.14)',
         boxShadow: '0 -10px 36px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
       }}

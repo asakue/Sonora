@@ -8,6 +8,7 @@ import {
   STORAGE_KEY,
 } from '../types/mixer';
 import { QUEUE_STORAGE_KEY, CURRENT_TRACK_STORAGE_KEY } from '../services/recommendation';
+import { getApiBase } from '../config';
 
 export interface AudioProgressContextType {
   currentTime: number;
@@ -75,7 +76,7 @@ interface AudioPlayerContextType {
 
 const AudioPlayerContext = createContext<AudioPlayerContextType | null>(null);
 
-const API_BASE = 'http://127.0.0.1:8000';
+
 
 /**
  * Isolated AudioProgressProvider:
@@ -858,7 +859,8 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/stream/${track.id}/info`);
+      const apiBase = getApiBase();
+      const res = await fetch(`${apiBase}/api/stream/${track.id}/info`);
       if (currentRequestId !== playRequestIdRef.current) {
         // Discard stale request if user clicked Next again while fetching
         return;
@@ -870,7 +872,10 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const streamInfo: StreamInfo = await res.json();
       if (currentRequestId !== playRequestIdRef.current) return;
 
-      const streamUrl = streamInfo.stream_url;
+      const rawStreamUrl = streamInfo.stream_url;
+      const streamUrl = rawStreamUrl.startsWith('http')
+        ? rawStreamUrl
+        : `${apiBase}${rawStreamUrl.startsWith('/') ? '' : '/'}${rawStreamUrl}`;
 
       if (streamInfo.protocol === 'hls' && Hls.isSupported()) {
         const hls = new Hls({

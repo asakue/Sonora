@@ -12,7 +12,7 @@ import { useAudioPlayer } from '../../context/AudioPlayerContext';
 import { useUserStore } from '../../context/UserStoreContext';
 import type { Track } from '../../types/music';
 import { formatDuration, formatNumberCompact } from '../../utils/formatters';
-import { API_BASE } from '../../config';
+import { getApiBase } from '../../config';
 
 interface SearchDrawerProps {
   isOpen: boolean;
@@ -47,7 +47,7 @@ export const SearchDrawer: React.FC<SearchDrawerProps> = ({ isOpen, onClose }) =
     setLoading(true);
     setSearched(true);
     try {
-      const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(term)}&limit=25`);
+      const res = await fetch(`${getApiBase()}/api/search?q=${encodeURIComponent(term)}&limit=25`);
       if (res.ok) {
         const data = await res.json();
         setResults(data.tracks || []);

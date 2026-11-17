@@ -14,7 +14,7 @@ import { useAudioPlayer } from '../../context/AudioPlayerContext';
 import { useUserStore } from '../../context/UserStoreContext';
 import type { MildWaveStyle, Track } from '../../types/music';
 import { formatDuration } from '../../utils/formatters';
-import { API_BASE } from '../../config';
+import { getApiBase } from '../../config';
 
 interface MildWaveDrawerProps {
   isOpen: boolean;
@@ -41,7 +41,7 @@ export const MildWaveDrawer: React.FC<MildWaveDrawerProps> = ({ isOpen, onClose 
     setLoading(true);
     setGenerated(true);
     try {
-      const res = await fetch(`${API_BASE}/api/mildwave/recommend`, {
+      const res = await fetch(`${getApiBase()}/api/mildwave/recommend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

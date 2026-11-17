@@ -3,7 +3,7 @@
   "appName": "Sonora",
   "webDir": "dist",
   "server": {
-    "androidScheme": "https",
+    "androidScheme": "http",
     "cleartext": true
   },
   "android": {

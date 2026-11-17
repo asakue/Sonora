@@ -70,7 +70,7 @@ export const HeroPlayer: React.FC<HeroPlayerProps> = React.memo(({ isBottomNavOp
 
   return (
     <div
-      className="md:glass-panel rounded-none md:rounded-3xl border-0 md:border md:border-white/12 [box-shadow:none] md:[box-shadow:inset_0_1.5px_0.5px_0_rgba(255,255,255,0.28)] px-4 sm:px-7 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] md:pt-7 pb-3 md:pb-7 flex flex-col justify-between flex-1 min-h-0 relative overflow-hidden select-none w-full"
+      className="md:glass-panel rounded-none md:rounded-3xl border-0 md:border md:border-white/12 [box-shadow:none] md:[box-shadow:inset_0_1.5px_0.5px_0_rgba(255,255,255,0.28)] px-4 sm:px-7 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] md:pt-7 pb-3 md:pb-7 flex flex-col justify-between flex-1 min-h-0 relative overflow-hidden select-none w-full md:backdrop-blur-2xl"
       style={{
         /* Frameless liquid glass surface with complete 4-quadrant gradient harmony (eliminates empty corners) */
         background: `
@@ -80,8 +80,6 @@ export const HeroPlayer: React.FC<HeroPlayerProps> = React.memo(({ isBottomNavOp
           radial-gradient(ellipse 75% 55% at 15% 85%, color-mix(in srgb, var(--cover-a, #1e1b4b) 24%, transparent) 0%, transparent 70%),
           linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(12, 15, 24, 0.22) 45%, rgba(6, 8, 14, 0.48) 100%)
         `,
-        backdropFilter: 'blur(28px) saturate(190%)',
-        WebkitBackdropFilter: 'blur(28px) saturate(190%)',
         transition: 'background 0.8s ease',
       }}
     >

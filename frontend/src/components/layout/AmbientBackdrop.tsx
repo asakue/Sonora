@@ -144,9 +144,9 @@ export const AmbientBackdrop: React.FC = React.memo(() => {
         }}
       />
 
-      {/* 4. Analog Texture Overlay (Eliminates digital color-banding and gives cinematic depth) */}
+      {/* 4. Analog Texture Overlay (Desktop only - disabled on mobile for 60/120 FPS buttery-smooth performance) */}
       <svg
-        className="absolute inset-0 w-full h-full opacity-[0.035] pointer-events-none mix-blend-overlay"
+        className="hidden md:block absolute inset-0 w-full h-full opacity-[0.035] pointer-events-none mix-blend-overlay"
         xmlns="http://www.w3.org/2000/svg"
       >
         <filter id="ambient-noise">

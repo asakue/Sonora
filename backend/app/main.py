@@ -41,6 +41,9 @@ class MildWaveRequest(BaseModel):
 
 
 @app.get("/api/health")
+@app.get("/health")
+@app.get("/api/index.py")
+@app.get("/")
 async def health_check():
     client_id = await client_id_manager.get_client_id()
     return {
@@ -52,6 +55,7 @@ async def health_check():
 
 
 @app.post("/api/client-id/refresh")
+@app.post("/client-id/refresh")
 async def force_refresh_client_id():
     client_id_manager.invalidate()
     new_id = await client_id_manager.get_client_id(force_refresh=True)
@@ -59,6 +63,7 @@ async def force_refresh_client_id():
 
 
 @app.get("/api/search")
+@app.get("/search")
 async def search_tracks(
     q: str = Query(..., description="Query search term"),
     limit: int = Query(20, ge=1, le=50),
@@ -73,6 +78,7 @@ async def search_tracks(
 
 
 @app.get("/api/tracks/{track_id}")
+@app.get("/tracks/{track_id}")
 async def get_track_info(track_id: int):
     try:
         track = await sc_client.get_track(track_id)
@@ -83,6 +89,7 @@ async def get_track_info(track_id: int):
 
 
 @app.get("/api/tracks/{track_id}/related")
+@app.get("/tracks/{track_id}/related")
 async def get_related_tracks(track_id: int, limit: int = Query(15, ge=1, le=30)):
     try:
         tracks = await sc_client.get_related_tracks(track_id, limit=limit)
@@ -93,6 +100,7 @@ async def get_related_tracks(track_id: int, limit: int = Query(15, ge=1, le=30))
 
 
 @app.get("/api/stream/{track_id}/info")
+@app.get("/stream/{track_id}/info")
 async def get_stream_info(track_id: int, request: Request):
     """Inspects track transcodings and returns the appropriate stream proxy URL."""
     try:
@@ -129,6 +137,7 @@ async def get_stream_info(track_id: int, request: Request):
 
 
 @app.get("/api/stream/{track_id}/raw")
+@app.get("/stream/{track_id}/raw")
 async def stream_raw(track_id: int, request: Request):
     """Streams progressive audio file from upstream CDN with Range header support."""
     try:
@@ -146,6 +155,7 @@ async def stream_raw(track_id: int, request: Request):
 
 
 @app.get("/api/stream/{track_id}/playlist.m3u8")
+@app.get("/stream/{track_id}/playlist.m3u8")
 async def stream_hls_playlist(track_id: int, request: Request):
     """Fetches upstream m3u8 playlist and returns rewritten proxy URIs."""
     try:
@@ -165,6 +175,7 @@ async def stream_hls_playlist(track_id: int, request: Request):
 
 
 @app.get("/api/stream/chunk")
+@app.get("/stream/chunk")
 async def stream_chunk(url: str = Query(...), request: Request = None):
     """Proxies a single audio segment/init chunk from SoundCloud CloudFront CDN."""
     try:
@@ -182,6 +193,7 @@ async def stream_chunk(url: str = Query(...), request: Request = None):
 
 
 @app.get("/api/proxy/image")
+@app.get("/proxy/image")
 async def proxy_image(url: str = Query(...)):
     """Proxies artwork image with full CORS headers so frontend canvas can extract color palette without browser taint."""
     decoded_url = urllib.parse.unquote(url)
@@ -214,6 +226,7 @@ async def proxy_image(url: str = Query(...)):
 
 
 @app.post("/api/mildwave/recommend")
+@app.post("/mildwave/recommend")
 async def generate_mildwave(body: MildWaveRequest):
     try:
         tracks = await mildwave_engine.generate_wave(
