@@ -77,70 +77,73 @@ export const AmbientBackdrop: React.FC = React.memo(() => {
       className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
       style={{ contain: 'strict', transform: 'translateZ(0)' }}
     >
-      {/* 1. Deep Cosmic Foundation Layer */}
+      {/* 1. Deep Cosmic Foundation Layer with guaranteed corner coverage */}
       <div
         className="absolute inset-0 transition-colors duration-1000 ease-out"
         style={{
-          background: `radial-gradient(ellipse at 50% 30%, ${palette.coverA}40 0%, #0a0b10 80%)`,
+          background: `
+            radial-gradient(ellipse at 50% 30%, ${palette.coverA}55 0%, #0a0b10 82%),
+            radial-gradient(circle at 85% 15%, color-mix(in srgb, ${palette.coverB} 35%, transparent) 0%, transparent 65%)
+          `,
         }}
       />
 
-      {/* 2. Direct Bilinear Canvas Diffusion with Dual-Crossfade */}
+      {/* 2. Direct Bilinear Canvas Diffusion with Full-Bleed Scaling (overshoots edges to eliminate blur border gaps) */}
       <canvas
         ref={canvasRefA}
         width={96}
         height={96}
-        className={`absolute inset-0 w-full h-full object-cover scale-125 transition-opacity duration-1200 ease-in-out ${
-          hasArtwork && activeCanvas === 'A' ? 'opacity-80' : 'opacity-0'
+        className={`absolute -inset-[30%] w-[160%] h-[160%] object-cover transition-opacity duration-1200 ease-in-out ${
+          hasArtwork && activeCanvas === 'A' ? 'opacity-85' : 'opacity-0'
         }`}
         style={{
           filter: 'saturate(2.2) brightness(0.95)',
-          transform: 'translateZ(0) scale(1.3)',
+          transform: 'translateZ(0) scale(1.4)',
         }}
       />
       <canvas
         ref={canvasRefB}
         width={96}
         height={96}
-        className={`absolute inset-0 w-full h-full object-cover scale-125 transition-opacity duration-1200 ease-in-out ${
-          hasArtwork && activeCanvas === 'B' ? 'opacity-80' : 'opacity-0'
+        className={`absolute -inset-[30%] w-[160%] h-[160%] object-cover transition-opacity duration-1200 ease-in-out ${
+          hasArtwork && activeCanvas === 'B' ? 'opacity-85' : 'opacity-0'
         }`}
         style={{
           filter: 'saturate(2.2) brightness(0.95)',
-          transform: 'translateZ(0) scale(1.3)',
+          transform: 'translateZ(0) scale(1.4)',
         }}
       />
 
-      {/* 3. Four Organic Multi-Octave Aurora Nebulas */}
-      {/* Aurora Orb 1: Upper Right (Primary signature hue) */}
+      {/* 3. Four Organic Multi-Octave Aurora Nebulas with responsive corner-anchored positioning */}
+      {/* Aurora Orb 1: Upper Right (Primary signature hue, fully covers top-right on mobile & desktop) */}
       <div
-        className="absolute -top-[20%] -right-[15%] w-[950px] h-[900px] rounded-full opacity-60 transition-colors duration-1000 pointer-events-none"
+        className="absolute -top-[10%] -right-[10%] w-[90vw] max-w-[950px] min-w-[500px] h-[80vh] max-h-[900px] min-h-[500px] rounded-full opacity-65 transition-colors duration-1000 pointer-events-none"
         style={{
-          background: `radial-gradient(circle at 60% 40%, ${palette.coverB}, transparent 70%)`,
+          background: `radial-gradient(circle at 70% 30%, ${palette.coverB}, transparent 70%)`,
         }}
       />
 
       {/* Aurora Orb 2: Lower Left (Deep base glow) */}
       <div
-        className="absolute -bottom-[25%] -left-[15%] w-[1050px] h-[950px] rounded-full opacity-55 transition-colors duration-1000 pointer-events-none"
+        className="absolute -bottom-[20%] -left-[10%] w-[90vw] max-w-[1050px] min-w-[500px] h-[80vh] max-h-[950px] min-h-[500px] rounded-full opacity-55 transition-colors duration-1000 pointer-events-none"
         style={{
-          background: `radial-gradient(circle at 40% 60%, ${palette.coverA}, transparent 72%)`,
+          background: `radial-gradient(circle at 35% 65%, ${palette.coverA}, transparent 72%)`,
         }}
       />
 
       {/* Aurora Orb 3: Center & Center-Left (Luminous accent highlight) */}
       <div
-        className="absolute top-[20%] left-[15%] w-[750px] h-[750px] rounded-full opacity-45 transition-colors duration-1000 pointer-events-none"
+        className="absolute top-[20%] left-[10%] w-[70vw] max-w-[750px] h-[60vh] max-h-[750px] rounded-full opacity-45 transition-colors duration-1000 pointer-events-none"
         style={{
-          background: `radial-gradient(circle, ${palette.coverC}, transparent 65%)`,
+          background: `radial-gradient(circle at 40% 40%, ${palette.coverC}, transparent 65%)`,
         }}
       />
 
       {/* Aurora Orb 4: Bottom Right (Harmonized radiant glow) */}
       <div
-        className="absolute bottom-[5%] right-[10%] w-[800px] h-[750px] rounded-full opacity-40 transition-colors duration-1000 pointer-events-none"
+        className="absolute bottom-[5%] right-[5%] w-[70vw] max-w-[800px] h-[60vh] max-h-[750px] rounded-full opacity-40 transition-colors duration-1000 pointer-events-none"
         style={{
-          background: `radial-gradient(circle, ${palette.glowColor}, transparent 65%)`,
+          background: `radial-gradient(circle at 60% 60%, ${palette.glowColor}, transparent 65%)`,
         }}
       />
 
@@ -156,7 +159,7 @@ export const AmbientBackdrop: React.FC = React.memo(() => {
       </svg>
 
       {/* 5. Center & Bottom Vignette Mask */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b10]/85 via-transparent to-[#0a0b10]/30" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b10]/85 via-transparent to-[#0a0b10]/20" />
     </div>
   );
 });

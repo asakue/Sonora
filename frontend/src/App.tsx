@@ -166,7 +166,7 @@ const MainApp: React.FC = React.memo(() => {
     const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
 
     // Horizontal swipe: left/right drawers
-    if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
+    if (Math.abs(deltaX) > 38 && Math.abs(deltaX) > Math.abs(deltaY) * 1.1) {
       if (deltaX > 0) {
         setIsLeftDrawerOpen(true);
         setIsRightDrawerOpen(false);

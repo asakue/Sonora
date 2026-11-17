@@ -104,22 +104,10 @@ export const HeroPlayer: React.FC<HeroPlayerProps> = React.memo(({ isBottomNavOp
                   className="w-full h-full object-cover animate-track-reveal transition-opacity duration-500"
                 />
               ) : (
-                <div className="flex flex-col items-center justify-center text-neutral-500 gap-3">
+                <div className="flex items-center justify-center text-neutral-400">
                   <Disc3 size={64} strokeWidth={1} className={isPlaying ? 'animate-spin' : ''} style={{ animationDuration: '6s' }} />
-                  <span className="text-xs font-mono tracking-wide text-neutral-400">MildWave Studio</span>
                 </div>
               )}
-
-              {/* Waterfall Glass 3D Curved Edge Lens & Specular Sheen */}
-              <div
-                className="absolute inset-0 rounded-[2rem] pointer-events-none"
-                style={{
-                  background:
-                    'radial-gradient(circle at center, transparent 65%, rgba(0, 0, 0, 0.4) 100%), linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.05) 25%, transparent 50%, rgba(0, 0, 0, 0.25) 100%)',
-                  boxShadow:
-                    'inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.6), inset 1.5px 0 1.5px 0 rgba(255, 255, 255, 0.2), inset -1.5px 0 1.5px 0 rgba(0, 0, 0, 0.35)',
-                }}
-              />
             </div>
           </div>
         </div>
@@ -136,16 +124,7 @@ export const HeroPlayer: React.FC<HeroPlayerProps> = React.memo(({ isBottomNavOp
                 {currentTrack.artist}
               </p>
             </div>
-          ) : (
-            <div className="py-4 sm:py-6 animate-track-reveal">
-              <h2 className="text-xl sm:text-3xl md:text-4xl font-bold text-neutral-300 mb-2">
-                Музыкальный плеер
-              </h2>
-              <p className="text-neutral-400 text-xs sm:text-sm max-w-md">
-                Выберите трек через поиск SoundCloud или запустите волну MildWave, чтобы наполнить пространство звуком.
-              </p>
-            </div>
-          )}
+          ) : null}
 
           {errorMessage && (
             <div className="mt-3 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-lg">
