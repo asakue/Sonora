@@ -77,15 +77,11 @@ export const AmbientBackdrop: React.FC = React.memo(() => {
       className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
       style={{ contain: 'strict', transform: 'translateZ(0)' }}
     >
-      {/* 1. Deep Cosmic Foundation Layer: Pinned to corners to ensure continuous edge-to-edge color coverage */}
+      {/* 1. Deep Cosmic Foundation Layer */}
       <div
         className="absolute inset-0 transition-colors duration-1000 ease-out"
         style={{
-          background: `
-            radial-gradient(circle at 100% 0%, ${palette.coverB}45 0%, transparent 65%),
-            radial-gradient(circle at 0% 100%, ${palette.coverA}40 0%, transparent 65%),
-            radial-gradient(ellipse at 50% 30%, ${palette.coverA}40 0%, #0a0b10 80%)
-          `,
+          background: `radial-gradient(ellipse at 50% 30%, ${palette.coverA}40 0%, #0a0b10 80%)`,
         }}
       />
 
@@ -115,60 +111,36 @@ export const AmbientBackdrop: React.FC = React.memo(() => {
         }}
       />
 
-      {/* 3. Four Organic Multi-Octave Aurora Nebulas - scaled & anchored so they never clip or shift off-screen on mobile */}
+      {/* 3. Four Organic Multi-Octave Aurora Nebulas */}
       {/* Aurora Orb 1: Upper Right (Primary signature hue) */}
       <div
-        className="absolute pointer-events-none transition-colors duration-1000"
+        className="absolute -top-[15%] -right-[30%] md:-top-[20%] md:-right-[15%] w-[650px] md:w-[950px] h-[650px] md:h-[900px] rounded-full opacity-60 transition-colors duration-1000 pointer-events-none"
         style={{
-          left: '92%',
-          top: '12%',
-          width: 'max(1000px, 95vw)',
-          height: 'max(950px, 75vh)',
-          transform: 'translate(-50%, -50%)',
-          background: `radial-gradient(circle farthest-corner at center, ${palette.coverB}, transparent 75%)`,
-          opacity: 0.65,
+          background: `radial-gradient(circle at 60% 40%, ${palette.coverB}, transparent 70%)`,
         }}
       />
 
       {/* Aurora Orb 2: Lower Left (Deep base glow) */}
       <div
-        className="absolute pointer-events-none transition-colors duration-1000"
+        className="absolute -bottom-[20%] -left-[20%] md:-bottom-[25%] md:-left-[15%] w-[700px] md:w-[1050px] h-[700px] md:h-[950px] rounded-full opacity-55 transition-colors duration-1000 pointer-events-none"
         style={{
-          left: '8%',
-          top: '88%',
-          width: 'max(1100px, 100vw)',
-          height: 'max(1000px, 80vh)',
-          transform: 'translate(-50%, -50%)',
-          background: `radial-gradient(circle farthest-corner at center, ${palette.coverA}, transparent 75%)`,
-          opacity: 0.60,
+          background: `radial-gradient(circle at 40% 60%, ${palette.coverA}, transparent 72%)`,
         }}
       />
 
       {/* Aurora Orb 3: Center & Center-Left (Luminous accent highlight) */}
       <div
-        className="absolute pointer-events-none transition-colors duration-1000"
+        className="absolute top-[20%] left-[10%] md:left-[15%] w-[500px] md:w-[750px] h-[500px] md:h-[750px] rounded-full opacity-45 transition-colors duration-1000 pointer-events-none"
         style={{
-          left: '35%',
-          top: '48%',
-          width: 'max(800px, 70vw)',
-          height: 'max(800px, 70vh)',
-          transform: 'translate(-50%, -50%)',
-          background: `radial-gradient(circle farthest-corner at center, ${palette.coverC}, transparent 70%)`,
-          opacity: 0.45,
+          background: `radial-gradient(circle, ${palette.coverC}, transparent 65%)`,
         }}
       />
 
       {/* Aurora Orb 4: Bottom Right (Harmonized radiant glow) */}
       <div
-        className="absolute pointer-events-none transition-colors duration-1000"
+        className="absolute bottom-[5%] right-[5%] md:right-[10%] w-[550px] md:w-[800px] h-[550px] md:h-[750px] rounded-full opacity-40 transition-colors duration-1000 pointer-events-none"
         style={{
-          left: '72%',
-          top: '65%',
-          width: 'max(850px, 75vw)',
-          height: 'max(800px, 70vh)',
-          transform: 'translate(-50%, -50%)',
-          background: `radial-gradient(circle farthest-corner at center, ${palette.glowColor}, transparent 70%)`,
-          opacity: 0.45,
+          background: `radial-gradient(circle, ${palette.glowColor}, transparent 65%)`,
         }}
       />
 
@@ -183,8 +155,8 @@ export const AmbientBackdrop: React.FC = React.memo(() => {
         <rect width="100%" height="100%" filter="url(#ambient-noise)" />
       </svg>
 
-      {/* 5. Bottom Contrast Vignette (grounding controls without muddying top ambient light) */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b10]/80 via-transparent to-transparent pointer-events-none" />
+      {/* 5. Center & Bottom Vignette Mask */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b10]/85 via-transparent to-[#0a0b10]/30" />
     </div>
   );
 });
