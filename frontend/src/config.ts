@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core';
+
 /**
  * Sonora API Base Configuration.
  * Handles environment-specific API endpoint resolution:
@@ -16,8 +18,10 @@ export const getApiBase = (): string => {
 
   // 2. Capacitor Android/iOS native runtime detection
   const isCapacitor =
+    Capacitor.isNativePlatform() ||
     !!(window as any).Capacitor?.isNativePlatform?.() ||
     window.location.protocol === 'capacitor:' ||
+    (window.location.hostname === 'localhost' && !window.location.port) ||
     (window.location.protocol === 'http:' && window.location.hostname === 'localhost' && typeof (window as any).Capacitor !== 'undefined') ||
     (window.location.protocol === 'https:' && window.location.hostname === 'localhost' && typeof (window as any).Capacitor !== 'undefined');
 
