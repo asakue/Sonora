@@ -74,6 +74,7 @@ export const HeroPlayer: React.FC<HeroPlayerProps> = React.memo(({ isBottomNavOp
       style={{
         /* Frameless liquid glass surface with complete 4-quadrant gradient harmony (eliminates empty corners) */
         background: `
+          radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--cover-b, #4338ca) 22%, transparent) 0%, transparent 60%),
           radial-gradient(ellipse 75% 55% at 85% 15%, color-mix(in srgb, var(--cover-b, #4338ca) 28%, transparent) 0%, transparent 70%),
           radial-gradient(ellipse 75% 55% at 15% 15%, color-mix(in srgb, var(--cover-c, #ec4899) 18%, transparent) 0%, transparent 70%),
           radial-gradient(ellipse 75% 55% at 85% 85%, color-mix(in srgb, var(--cover-c, #ec4899) 18%, transparent) 0%, transparent 70%),

@@ -190,7 +190,7 @@ const MainApp: React.FC = React.memo(() => {
   };
 
   return (
-    <div className="relative h-screen max-h-screen overflow-hidden bg-[#0a0b0e] text-[#ededf0] selection:bg-indigo-500/30 selection:text-white flex flex-col">
+    <div className="relative h-screen h-[100dvh] max-h-screen w-full max-w-full overflow-hidden bg-[#0a0b0e] text-[#ededf0] selection:bg-indigo-500/30 selection:text-white flex flex-col">
       {/* Dynamic ambient backdrop */}
       <AmbientBackdrop />
 
