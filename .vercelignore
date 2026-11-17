@@ -1,0 +1,17 @@
+.git
+node_modules
+frontend/node_modules
+frontend/dist_electron
+backend/dist
+backend/build
+backend/.venv
+backend/venv
+.venv
+venv
+dist_electron
+*.log
+*.exe
+*.zip
+*.tar.gz
+*.pyd
+*.obj
