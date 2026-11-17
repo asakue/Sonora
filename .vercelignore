@@ -9,9 +9,12 @@ backend/venv
 .venv
 venv
 dist_electron
+dist_apk
+frontend/android
 *.log
 *.exe
 *.zip
 *.tar.gz
 *.pyd
 *.obj
+

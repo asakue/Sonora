@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "electron:dev": "electron electron/main.cjs",
     "electron:pack": "tsc -b && vite build && electron-builder --win --dir",
-    "electron:build": "tsc -b && vite build && electron-builder --win"
+    "electron:build": "tsc -b && vite build && electron-builder --win",
+    "apk:build": "npm run build && npx cap sync android && cd android && .\\gradlew.bat assembleDebug"
   },
   "build": {
     "appId": "com.sonora.player",
@@ -55,6 +56,9 @@
     }
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
     "hls.js": "^1.7.4",
     "lucide-react": "^1.73.0",
     "react": "^19.3.1",
