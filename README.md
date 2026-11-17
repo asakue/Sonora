@@ -1,16 +1,16 @@
 # Sonora
 
-Веб-плеер с каталогом SoundCloud, умным персональным радио **MildWave**, 5-полосным эквалайзером, 3D-стерео и адаптивным стеклянным интерфейсом, меняющим тему под цвета текущей обложки.
+Веб-плеер с каталогом SoundCloud, умным персональным радио **MildWave**, 5-полосным эквалайзером, 3D-стерео и адаптивным интерфейсом, меняющим тему под цвета текущей обложки.
 
 ---
 
-## Скриншоты
+## Интерфейс
 
-| Розовый амбиент | Синий амбиент |
-| :---: | :---: |
-| ![Sonora Pink](docs/screenshots/sonora-pink.png) | ![Sonora Blue](docs/screenshots/sonora-blue.png) |
-| **Янтарный амбиент** | **Тёмный монохром** |
-| ![Sonora Amber](docs/screenshots/sonora-amber.png) | ![Sonora Dark](docs/screenshots/sonora-dark.png) |
+
+![Sonora Pink](docs/screenshots/sonora-pink.png) 
+![Sonora Blue](docs/screenshots/sonora-blue.png)  
+![Sonora Amber](docs/screenshots/sonora-amber.png) 
+![Sonora Dark](docs/screenshots/sonora-dark.png) 
 
 ---
 
