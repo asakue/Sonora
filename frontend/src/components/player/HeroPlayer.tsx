@@ -66,17 +66,17 @@ export const HeroPlayer: React.FC = React.memo(() => {
 
   return (
     <div
-      className="glass-panel rounded-none md:rounded-3xl border-0 md:border md:border-white/12 [box-shadow:none] md:[box-shadow:inset_0_1.5px_0.5px_0_rgba(255,255,255,0.28)] px-4 sm:px-7 pt-4 pb-2 sm:py-7 flex flex-col justify-between flex-1 min-h-0 relative overflow-hidden select-none w-full"
+      className="md:glass-panel rounded-none md:rounded-3xl border-0 md:border md:border-white/12 [box-shadow:none] md:[box-shadow:inset_0_1.5px_0.5px_0_rgba(255,255,255,0.28)] px-4 sm:px-7 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] md:pt-7 pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:pb-7 flex flex-col justify-between flex-1 min-h-0 relative overflow-hidden select-none w-full"
       style={{
-        /* Frameless liquid glass tint that flows seamlessly across the mobile screen */
+        /* Frameless liquid glass surface that extends edge-to-edge from top to bottom */
         background: `
-          radial-gradient(ellipse 95% 65% at 50% 15%, color-mix(in srgb, var(--cover-b, #4338ca) 28%, transparent) 0%, transparent 75%),
-          radial-gradient(ellipse 75% 55% at 85% 85%, color-mix(in srgb, var(--cover-c, #ec4899) 20%, transparent) 0%, transparent 70%),
-          radial-gradient(ellipse 75% 55% at 15% 85%, color-mix(in srgb, var(--cover-a, #1e1b4b) 24%, transparent) 0%, transparent 70%),
-          linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(14, 17, 26, 0.28) 40%, rgba(9, 11, 17, 0.52) 100%)
+          radial-gradient(ellipse 90% 60% at 50% 15%, color-mix(in srgb, var(--cover-b, #4338ca) 22%, transparent) 0%, transparent 75%),
+          radial-gradient(ellipse 70% 50% at 85% 85%, color-mix(in srgb, var(--cover-c, #ec4899) 16%, transparent) 0%, transparent 70%),
+          radial-gradient(ellipse 70% 50% at 15% 85%, color-mix(in srgb, var(--cover-a, #1e1b4b) 22%, transparent) 0%, transparent 70%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(12, 15, 24, 0.22) 45%, rgba(6, 8, 14, 0.48) 100%)
         `,
-        backdropFilter: 'blur(30px) saturate(190%)',
-        WebkitBackdropFilter: 'blur(30px) saturate(190%)',
+        backdropFilter: 'blur(28px) saturate(190%)',
+        WebkitBackdropFilter: 'blur(28px) saturate(190%)',
         transition: 'background 0.8s ease',
       }}
     >

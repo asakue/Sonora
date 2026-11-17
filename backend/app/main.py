@@ -1,6 +1,7 @@
 import logging
 import urllib.parse
 from typing import Any, Dict, List, Optional
+import httpx
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, StreamingResponse
@@ -178,6 +179,38 @@ async def stream_chunk(url: str = Query(...), request: Request = None):
     except Exception as e:
         logger.error("Error proxying chunk: %s", e)
         raise HTTPException(status_code=502, detail=f"Chunk proxy error: {str(e)}")
+
+
+@app.get("/api/proxy/image")
+async def proxy_image(url: str = Query(...)):
+    """Proxies artwork image with full CORS headers so frontend canvas can extract color palette without browser taint."""
+    decoded_url = urllib.parse.unquote(url)
+    if not (decoded_url.startswith("https://") or decoded_url.startswith("http://")):
+        raise HTTPException(status_code=400, detail="Invalid image URL")
+    try:
+        async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+            resp = await client.get(
+                decoded_url,
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+            )
+            if resp.status_code != 200:
+                raise HTTPException(status_code=resp.status_code, detail="Failed to fetch image from CDN")
+            content_type = resp.headers.get("content-type", "image/jpeg")
+            return Response(
+                content=resp.content,
+                media_type=content_type,
+                headers={
+                    "Cache-Control": "public, max-age=86400, immutable",
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, OPTIONS",
+                    "Access-Control-Allow-Headers": "*",
+                },
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.warning("Error proxying image %s: %s", decoded_url, e)
+        raise HTTPException(status_code=502, detail=f"Image proxy error: {str(e)}")
 
 
 @app.post("/api/mildwave/recommend")

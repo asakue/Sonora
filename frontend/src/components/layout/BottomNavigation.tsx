@@ -36,13 +36,14 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = React.memo(({
 
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 z-40 md:hidden select-none pointer-events-auto"
+      className="fixed bottom-0 inset-x-0 z-40 md:hidden select-none pointer-events-auto border-0 [box-shadow:none]"
       style={{
-        /* Seamless liquid glass that naturally merges with the main screen */
-        background:
-          'linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(10, 12, 18, 0.35) 40%, rgba(8, 9, 14, 0.65) 100%)',
-        backdropFilter: 'blur(36px) saturate(190%)',
-        WebkitBackdropFilter: 'blur(36px) saturate(190%)',
+        /* 100% seamless liquid fusion with HeroPlayer: transparent on main screen so they are one unified piece */
+        background: isListenActive
+          ? 'transparent'
+          : 'linear-gradient(180deg, transparent 0%, rgba(8, 9, 14, 0.75) 100%)',
+        backdropFilter: isListenActive ? 'none' : 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: isListenActive ? 'none' : 'blur(20px) saturate(180%)',
       }}
     >
       <div className="grid grid-cols-4 items-center h-16 max-w-lg mx-auto px-2 pb-[env(safe-area-inset-bottom,0px)]">

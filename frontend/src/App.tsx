@@ -181,7 +181,7 @@ const MainApp: React.FC = React.memo(() => {
 
       {/* Main app container */}
       <div
-        className="relative z-10 flex-1 h-full max-h-full max-w-[1700px] w-full mx-auto p-0 md:p-4 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-4 flex md:gap-4 min-h-0 overflow-hidden"
+        className="relative z-10 flex-1 h-full max-h-full max-w-[1700px] w-full mx-auto p-0 md:p-4 pb-0 md:pb-4 flex md:gap-4 min-h-0 overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -231,12 +231,12 @@ const MainApp: React.FC = React.memo(() => {
           )}
 
           {currentTab === 'liked' && (
-            <div key="liked" className="flex-1 min-h-0 h-full flex flex-col animate-view-enter overflow-hidden p-3 md:p-0">
+            <div key="liked" className="flex-1 min-h-0 h-full flex flex-col animate-view-enter overflow-hidden p-3 md:p-0 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
               <LikedSongsView />
             </div>
           )}
           {currentTab === 'history' && (
-            <div key="history" className="flex-1 min-h-0 h-full flex flex-col animate-view-enter overflow-hidden p-3 md:p-0">
+            <div key="history" className="flex-1 min-h-0 h-full flex flex-col animate-view-enter overflow-hidden p-3 md:p-0 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
               <HistoryView />
             </div>
           )}

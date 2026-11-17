@@ -1,3 +1,5 @@
+import { API_BASE } from '../config';
+
 export interface CoverPalette {
   coverA: string; // Deep/mood foundation tone
   coverB: string; // Vibrant atmospheric aura tone
@@ -86,6 +88,10 @@ export async function extractCoverPalette(imageUrl?: string): Promise<CoverPalet
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
+
+    const proxiedSrc = imageUrl.startsWith('http')
+      ? `${API_BASE}/api/proxy/image?url=${encodeURIComponent(imageUrl)}`
+      : imageUrl;
 
     img.onload = () => {
       try {
@@ -214,9 +220,14 @@ export async function extractCoverPalette(imageUrl?: string): Promise<CoverPalet
     };
 
     img.onerror = () => {
-      resolve(DEFAULT_COVER_PALETTE);
+      // If proxy failed, try raw URL before giving up
+      if (img.src !== imageUrl) {
+        img.src = imageUrl;
+      } else {
+        resolve(DEFAULT_COVER_PALETTE);
+      }
     };
 
-    img.src = imageUrl;
+    img.src = proxiedSrc;
   });
 }
